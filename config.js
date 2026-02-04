@@ -7,7 +7,7 @@ const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://flannloidfpzzcbndiiu.su
 const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || '';
 
 // Initialize Supabase Client
-let supabase = null;
+let supabaseClient = null;
 
 function initSupabase() {
     if (!SUPABASE_ANON_KEY) {
@@ -16,7 +16,7 @@ function initSupabase() {
     }
     
     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log('Supabase initialized successfully');
         return true;
     }
@@ -28,4 +28,4 @@ function initSupabase() {
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 window.initSupabase = initSupabase;
-window.getSupabase = () => supabase;
+window.getSupabase = () => supabaseClient;
