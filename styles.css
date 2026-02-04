@@ -830,7 +830,27 @@ h1, h2, h3, h4 {
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 15px;
+}
+
+.form-row-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-group-half {
+    flex: 1;
+}
+
+.section-label {
+    display: block;
+    font-weight: 600;
+    color: var(--gold-primary);
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.section-label i {
+    margin-right: 6px;
 }
 
 .form-group {
@@ -845,6 +865,12 @@ h1, h2, h3, h4 {
     color: var(--text-secondary);
 }
 
+.form-group label i {
+    margin-right: 5px;
+    color: var(--gold-primary);
+    font-size: 0.8rem;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -856,6 +882,13 @@ h1, h2, h3, h4 {
     color: var(--text-primary);
     transition: var(--transition);
     font-family: 'Montserrat', sans-serif;
+    background: var(--white);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
 
 .form-group input[type="file"] {
@@ -929,23 +962,26 @@ h1, h2, h3, h4 {
 }
 
 .form-section {
-    background: var(--light-gray);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    background: var(--off-white);
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    border-left: 3px solid var(--gold-primary);
 }
 
 .form-section h4 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--text-primary);
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    font-weight: 600;
 }
 
 .form-section h4 i {
     color: var(--gold-primary);
+    font-size: 0.9rem;
 }
 
 .stock-product-name {
