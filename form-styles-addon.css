@@ -1,0 +1,39 @@
+/* Additional Form Layout Styles */
+
+.form-row-3 {
+    grid-template-columns: 1fr 1fr 1fr !important;
+}
+
+.form-group-half {
+    flex: 1;
+}
+
+.section-label {
+    display: block;
+    font-weight: 600;
+    color: var(--gold-primary);
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.section-label i {
+    margin-right: 6px;
+}
+
+.form-group label i {
+    margin-right: 5px;
+    color: var(--gold-primary);
+    font-size: 0.8rem;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: var(--white);
+}
