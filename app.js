@@ -64,6 +64,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
+// Chart.js instances
+let categoryChart = null;
+let profitChart = null;
+
 // Initialize Application
 async function initializeApp() {
     // Initialize Supabase
@@ -88,6 +92,7 @@ async function initializeApp() {
     renderProducts();
     renderInventory();
     renderPricing();
+    initializeCharts();
     
     // Update connection status indicator
     updateConnectionStatus();
@@ -153,8 +158,10 @@ function transformFromDb(record) {
         abroadPrice: record.abroad_price,
         abroadSelling: record.abroad_selling,
         description: record.description,
-        imageUrl: record.image_url,
-        imagePath: record.image_path,
+        localImageFile: record.local_image_file,
+        localImageUrl: record.local_image_url,
+        abroadImageFile: record.abroad_image_file,
+        abroadImageUrl: record.abroad_image_url,
         createdAt: record.created_at,
         updatedAt: record.updated_at
     };
@@ -177,8 +184,10 @@ function transformToDb(product) {
         abroad_price: product.abroadPrice,
         abroad_selling: product.abroadSelling,
         description: product.description || null,
-        image_url: product.imageUrl || null,
-        image_path: product.imagePath || null
+        local_image_file: product.localImageFile || null,
+        local_image_url: product.localImageUrl || null,
+        abroad_image_file: product.abroadImageFile || null,
+        abroad_image_url: product.abroadImageUrl || null
     };
 }
 
@@ -328,6 +337,10 @@ function openAddProductModal() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
+    
+    // Restore draft if exists
+    restoreFormDraft();
+    
     document.getElementById('productModal').classList.add('active');
 }
 
@@ -355,14 +368,21 @@ function openEditProductModal(productId) {
     document.getElementById('abroadPrice').value = product.abroadPrice;
     document.getElementById('abroadSelling').value = product.abroadSelling;
     document.getElementById('productDescription').value = product.description || '';
-    document.getElementById('productImageUrl').value = product.imageUrl || '';
+    document.getElementById('localImageUrl').value = product.localImageUrl || '';
+    document.getElementById('abroadImageUrl').value = product.abroadImageUrl || '';
     
     // Show existing images
-    if (product.imageUrl) {
-        document.getElementById('abroadImagePreview').innerHTML = `<img src="${product.imageUrl}" alt="Product">`;
+    if (product.localImageFile) {
+        document.getElementById('localFilePreview').innerHTML = `<img src="${product.localImageFile}" alt="Local Product">`;
     }
-    if (product.imagePath) {
-        document.getElementById('localImagePreview').innerHTML = `<img src="${product.imagePath}" alt="Product">`;
+    if (product.localImageUrl) {
+        document.getElementById('localUrlPreview').innerHTML = `<img src="${product.localImageUrl}" alt="Local Product">`;
+    }
+    if (product.abroadImageFile) {
+        document.getElementById('abroadFilePreview').innerHTML = `<img src="${product.abroadImageFile}" alt="Abroad Product">`;
+    }
+    if (product.abroadImageUrl) {
+        document.getElementById('abroadUrlPreview').innerHTML = `<img src="${product.abroadImageUrl}" alt="Abroad Product">`;
     }
     
     document.getElementById('productModal').classList.add('active');
@@ -370,10 +390,24 @@ function openEditProductModal(productId) {
 
 // Close Modal
 function closeModal() {
+    // Ask if user wants to save draft
+    const form = document.getElementById('productForm');
+    const hasData = document.getElementById('productName').value.trim() !== '';
+    
+    if (hasData && !document.getElementById('productId').value) {
+        if (confirm('Save form data as draft?')) {
+            saveFormDraft();
+        } else {
+            clearFormDraft();
+        }
+    }
+    
     document.getElementById('productModal').classList.remove('active');
     // Clear image previews
-    document.getElementById('localImagePreview').innerHTML = '';
-    document.getElementById('abroadImagePreview').innerHTML = '';
+    document.getElementById('localFilePreview').innerHTML = '';
+    document.getElementById('localUrlPreview').innerHTML = '';
+    document.getElementById('abroadFilePreview').innerHTML = '';
+    document.getElementById('abroadUrlPreview').innerHTML = '';
 }
 
 // Save Product
@@ -390,13 +424,19 @@ async function saveProduct(e) {
     const category = document.getElementById('productCategory').value;
     const type = document.getElementById('productType').value;
     
-    // Handle image file upload
-    const imageFile = document.getElementById('productImageFile').files[0];
-    let imagePath = productId ? products.find(p => p.id == productId)?.imagePath : null;
+    // Handle image file uploads and URLs
+    const localImageFile = document.getElementById('localImageFile').files[0];
+    const abroadImageFile = document.getElementById('abroadImageFile').files[0];
     
-    if (imageFile) {
-        // Convert image to base64 for localStorage
-        imagePath = await fileToBase64(imageFile);
+    let localImageFileData = productId ? products.find(p => p.id == productId)?.localImageFile : null;
+    let abroadImageFileData = productId ? products.find(p => p.id == productId)?.abroadImageFile : null;
+    
+    if (localImageFile) {
+        localImageFileData = await fileToBase64(localImageFile);
+    }
+    
+    if (abroadImageFile) {
+        abroadImageFileData = await fileToBase64(abroadImageFile);
     }
     
     const productData = {
@@ -414,8 +454,10 @@ async function saveProduct(e) {
         abroadPrice: parseFloat(document.getElementById('abroadPrice').value) || 0,
         abroadSelling: parseFloat(document.getElementById('abroadSelling').value) || 0,
         description: document.getElementById('productDescription').value,
-        imageUrl: document.getElementById('productImageUrl').value || null,
-        imagePath: imagePath,
+        localImageFile: localImageFileData,
+        localImageUrl: document.getElementById('localImageUrl').value || null,
+        abroadImageFile: abroadImageFileData,
+        abroadImageUrl: document.getElementById('abroadImageUrl').value || null,
         createdAt: productId ? products.find(p => p.id == productId)?.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
@@ -446,6 +488,7 @@ async function saveProduct(e) {
     }
     
     saveToLocalStorage();
+    clearFormDraft();
     closeModal();
     updateDashboard();
     renderProducts();
@@ -533,6 +576,9 @@ function updateDashboard() {
     
     // Category overview
     renderCategoryOverview();
+    
+    // Update charts
+    updateCharts();
 }
 
 // Render Recent Products
@@ -861,33 +907,336 @@ function fileToBase64(file) {
     });
 }
 
-// Preview image upload
+// Preview image upload for local file
 async function previewImage(event, type) {
     const file = event.target.files[0];
     if (file) {
         const base64 = await fileToBase64(file);
-        document.getElementById('localImagePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+        if (type === 'local-file') {
+            document.getElementById('localFilePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+        } else if (type === 'abroad-file') {
+            document.getElementById('abroadFilePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+        }
     }
 }
 
 // Preview image URL
-function previewImageUrl() {
-    const url = document.getElementById('productImageUrl').value;
+function previewImageUrl(type) {
+    let url, previewId;
+    if (type === 'local-url') {
+        url = document.getElementById('localImageUrl').value;
+        previewId = 'localUrlPreview';
+    } else if (type === 'abroad-url') {
+        url = document.getElementById('abroadImageUrl').value;
+        previewId = 'abroadUrlPreview';
+    }
+    
     if (url) {
-        document.getElementById('abroadImagePreview').innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=\\'image-error\\'>Invalid image URL</div>'">`;
+        document.getElementById(previewId).innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=\\'image-error\\'>Invalid image URL</div>'">`;
     }
 }
 
-// Get product image
+// Get product image with priority: local file > local URL > abroad file > abroad URL > placeholder
 function getProductImage(product) {
-    // Priority: imagePath (local) > imageUrl (abroad) > placeholder
-    if (product.imagePath) {
-        return product.imagePath;
-    } else if (product.imageUrl) {
-        return product.imageUrl;
+    if (product.localImageFile) {
+        return product.localImageFile;
+    } else if (product.localImageUrl) {
+        return product.localImageUrl;
+    } else if (product.abroadImageFile) {
+        return product.abroadImageFile;
+    } else if (product.abroadImageUrl) {
+        return product.abroadImageUrl;
     }
     return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f5f5f5" width="100" height="100"/%3E%3Ctext fill="%23c9a962" font-family="Arial" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
 }
+
+// =============================================
+// Dashboard Analytics with Charts
+// =============================================
+
+function initializeCharts() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+    
+    createCategoryChart();
+    createProfitChart();
+}
+
+function createCategoryChart() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
+    
+    // Count products by category
+    const categoryCounts = {};
+    products.forEach(product => {
+        categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+    });
+    
+    const labels = Object.keys(categoryCounts);
+    const data = Object.values(categoryCounts);
+    
+    // Destroy existing chart
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+    
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Products',
+                data: data,
+                backgroundColor: [
+                    '#B8860B',
+                    '#DAA520',
+                    '#8B6914',
+                    '#C9A962',
+                    '#D4AF37',
+                    '#E6C770'
+                ],
+                borderColor: '#FFFFFF',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Montserrat',
+                            size: 12
+                        },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} products (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createProfitChart() {
+    const ctx = document.getElementById('profitChart');
+    if (!ctx) return;
+    
+    // Calculate profit margins for each market
+    const localProfits = [];
+    const abroadProfits = [];
+    const labels = [];
+    
+    // Get top 10 products by profit
+    const productProfits = products.map(p => {
+        const localProfit = ((p.localSelling - p.localPrice) / p.localPrice) * 100;
+        const abroadProfit = ((p.abroadSelling - p.abroadPrice) / p.abroadPrice) * 100;
+        return {
+            name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
+            localProfit: isFinite(localProfit) ? localProfit : 0,
+            abroadProfit: isFinite(abroadProfit) ? abroadProfit : 0
+        };
+    }).slice(0, 10);
+    
+    productProfits.forEach(p => {
+        labels.push(p.name);
+        localProfits.push(p.localProfit);
+        abroadProfits.push(p.abroadProfit);
+    });
+    
+    // Destroy existing chart
+    if (profitChart) {
+        profitChart.destroy();
+    }
+    
+    profitChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Local Margin (%)',
+                    data: localProfits,
+                    backgroundColor: '#B8860B',
+                    borderColor: '#8B6914',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Abroad Margin (%)',
+                    data: abroadProfits,
+                    backgroundColor: '#DAA520',
+                    borderColor: '#C9A962',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        },
+                        font: {
+                            family: 'Montserrat',
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: '#f0f0f0'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            family: 'Montserrat',
+                            size: 10
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: 'Montserrat',
+                            size: 12
+                        },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.parsed.y.toFixed(1);
+                            return `${label}: ${value}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Update charts when data changes
+function updateCharts() {
+    if (typeof Chart !== 'undefined') {
+        createCategoryChart();
+        createProfitChart();
+    }
+}
+
+// =============================================
+// Form Draft Persistence
+// =============================================
+
+function saveFormDraft() {
+    const draft = {
+        name: document.getElementById('productName').value,
+        category: document.getElementById('productCategory').value,
+        type: document.getElementById('productType').value,
+        size: document.getElementById('productSize').value,
+        quality: document.getElementById('productQuality').value,
+        stock: document.getElementById('productStock').value,
+        weight: document.getElementById('productWeight').value,
+        localPrice: document.getElementById('localPrice').value,
+        localSelling: document.getElementById('localSelling').value,
+        abroadPrice: document.getElementById('abroadPrice').value,
+        abroadSelling: document.getElementById('abroadSelling').value,
+        description: document.getElementById('productDescription').value,
+        localImageUrl: document.getElementById('localImageUrl').value,
+        abroadImageUrl: document.getElementById('abroadImageUrl').value,
+        timestamp: new Date().toISOString()
+    };
+    
+    localStorage.setItem('leridia_form_draft', JSON.stringify(draft));
+    showToast('Draft saved!');
+}
+
+function restoreFormDraft() {
+    const draftJson = localStorage.getItem('leridia_form_draft');
+    if (!draftJson) return;
+    
+    try {
+        const draft = JSON.parse(draftJson);
+        
+        // Check if draft is not too old (24 hours)
+        const draftAge = new Date() - new Date(draft.timestamp);
+        if (draftAge > 24 * 60 * 60 * 1000) {
+            clearFormDraft();
+            return;
+        }
+        
+        // Restore values
+        if (draft.name) document.getElementById('productName').value = draft.name;
+        if (draft.category) {
+            document.getElementById('productCategory').value = draft.category;
+            updateTypeOptions();
+        }
+        if (draft.type) document.getElementById('productType').value = draft.type;
+        if (draft.size) document.getElementById('productSize').value = draft.size;
+        if (draft.quality) document.getElementById('productQuality').value = draft.quality;
+        if (draft.stock) document.getElementById('productStock').value = draft.stock;
+        if (draft.weight) document.getElementById('productWeight').value = draft.weight;
+        if (draft.localPrice) document.getElementById('localPrice').value = draft.localPrice;
+        if (draft.localSelling) document.getElementById('localSelling').value = draft.localSelling;
+        if (draft.abroadPrice) document.getElementById('abroadPrice').value = draft.abroadPrice;
+        if (draft.abroadSelling) document.getElementById('abroadSelling').value = draft.abroadSelling;
+        if (draft.description) document.getElementById('productDescription').value = draft.description;
+        if (draft.localImageUrl) document.getElementById('localImageUrl').value = draft.localImageUrl;
+        if (draft.abroadImageUrl) document.getElementById('abroadImageUrl').value = draft.abroadImageUrl;
+        
+        showToast('Draft restored!');
+    } catch (e) {
+        console.error('Error restoring draft:', e);
+        clearFormDraft();
+    }
+}
+
+function clearFormDraft() {
+    localStorage.removeItem('leridia_form_draft');
+}
+
+// Auto-save draft every 30 seconds if form has data
+setInterval(() => {
+    const modal = document.getElementById('productModal');
+    if (modal && modal.classList.contains('active')) {
+        const hasData = document.getElementById('productName').value.trim() !== '';
+        const isEditing = document.getElementById('productId').value !== '';
+        
+        if (hasData && !isEditing) {
+            saveFormDraft();
+        }
+    }
+}, 30000);
 
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
@@ -904,3 +1253,4 @@ window.exportInventory = exportInventory;
 window.syncWithCloud = syncWithCloud;
 window.previewImage = previewImage;
 window.previewImageUrl = previewImageUrl;
+

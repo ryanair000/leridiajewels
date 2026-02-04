@@ -2,6 +2,23 @@
    UI Enhancements & Polish
    ============================================= */
 
+/* Chart Cards */
+.chart-card {
+    flex: 1;
+    min-width: 400px;
+}
+
+.chart-card .card-body {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-card canvas {
+    max-height: 300px;
+}
+
 /* Loading States */
 .loading-overlay {
     position: fixed;

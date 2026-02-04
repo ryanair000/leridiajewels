@@ -1,17 +1,60 @@
 # Leridia Jewels - Inventory Management System
 
-A modern, elegant inventory management system for Leridia Jewels with a beautiful white and gold theme.
+A modern, professional inventory management system for Leridia Jewels with white/gold theme, dual-market pricing, comprehensive jewelry categorization, and advanced analytics.
 
-## Features
+## 🌟 Features
 
-- **Dashboard** - Overview of products, categories, stock levels
-- **Product Management** - Full CRUD operations with filtering and search
-- **Category Management** - Organized jewelry categories and types
-- **Inventory Tracking** - Stock level monitoring with low stock alerts
-- **Dual Pricing** - Local (KSH) and international pricing with profit margins
-- **Export** - Export inventory to CSV
-- **Cloud Sync** - Supabase integration for cloud storage
-- **Offline Support** - Falls back to localStorage when offline
+### Core Functionality
+- **Comprehensive Jewelry Categories**: Earrings, Necklaces, Rings, Bracelets/Bangles, Anklets, and Accessories
+- **Dual Market Pricing**: Separate pricing for local and abroad markets (KSH)
+- **Stock Management**: Track quantity (pieces) with low-stock alerts
+- **Weight Tracking**: Optional weight field in grams
+- **SKU Auto-Generation**: Automatic SKU creation based on category and type
+
+### Image Management (NEW!)
+- **Flexible Image Options**: Each market (local/abroad) supports:
+  - File upload (converted to base64)
+  - Image URL input
+  - Both options available simultaneously
+- **Image Previews**: Real-time preview for all 4 image inputs
+- **Lightbox Viewer**: Click any product image to view in full-screen lightbox
+
+### User Interface
+- **Bolder Gold Theme**: Enhanced gold accents (#B8860B, #DAA520, #8B6914)
+- **Horizontal Form Layout**: 3-column layout for efficient space utilization
+- **Responsive Design**: Mobile-first with breakpoints at 1024px, 768px, 480px
+- **Hamburger Menu**: Mobile navigation with smooth transitions
+- **Table/Grid Views**: Toggle between list and card views
+- **Bulk Actions**: Multi-select with checkboxes for batch operations
+  - Bulk delete with confirmation
+  - CSV export of selected items
+
+### Dashboard Analytics (NEW!)
+- **Category Distribution Chart**: Doughnut chart showing product breakdown
+- **Profit Margin Analysis**: Bar chart comparing local vs abroad margins
+- **Real-time Statistics**: Total products, low stock alerts, in-stock count
+- **Recent Products**: Quick view of latest additions
+
+### Advanced Features
+- **Advanced Filters**:
+  - Category filter
+  - Price range (local/abroad)
+  - Stock level filter
+  - Quality filter
+- **Search**: Real-time product search
+- **Column Management**: Show/hide table columns
+- **Keyboard Shortcuts**:
+  - `Ctrl+N`: Add new product
+  - `Escape`: Close modals
+- **Auto-Save Drafts**: Form data preservation
+- **Confirmation Dialogs**: Safe delete operations
+- **Loading States**: Visual feedback for async operations
+
+### Data Management
+- **Supabase Integration**: Cloud database with PostgreSQL
+- **Offline Mode**: localStorage fallback when offline
+- **Real-time Sync**: Manual sync button for cloud updates
+- **CSV Export**: Export inventory to spreadsheet
 
 ## Categories
 

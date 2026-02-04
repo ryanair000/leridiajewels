@@ -19,8 +19,10 @@ CREATE TABLE IF NOT EXISTS products (
     abroad_price DECIMAL(10, 2) NOT NULL,
     abroad_selling DECIMAL(10, 2) NOT NULL,
     description TEXT,
-    image_url TEXT,
-    image_path TEXT,
+    local_image_file TEXT,
+    local_image_url TEXT,
+    abroad_image_file TEXT,
+    abroad_image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
