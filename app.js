@@ -512,10 +512,24 @@ async function saveProduct(e) {
         } else {
             showToast('⚠️ Product added but sync failed', 'warning');
         }
+        
+        // Reset form for next product
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+        document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
+        document.getElementById('localFilePreview').innerHTML = '';
+        document.getElementById('localUrlPreview').innerHTML = '';
+        document.getElementById('abroadFilePreview').innerHTML = '';
+        document.getElementById('abroadUrlPreview').innerHTML = '';
+        document.getElementById('modalTitle').textContent = 'Add New Product';
+    }
+    
+    // Only close modal if editing (not adding new)
+    if (productId) {
+        closeModal();
     }
     
     clearFormDraft();
-    closeModal();
     updateDashboard();
     renderProducts();
     renderInventory();
