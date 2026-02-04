@@ -47,11 +47,24 @@ body {
     background-color: var(--off-white);
     color: var(--text-primary);
     line-height: 1.6;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4 {
     font-family: 'Cormorant Garamond', serif;
-    font-weight: 600;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+p, span, label, td, th {
+    font-weight: 500;
 }
 
 /* App Container */
@@ -98,16 +111,19 @@ h1, h2, h3, h4 {
 }
 
 .logo h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     color: var(--text-primary);
     margin-bottom: 5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .logo .tagline {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 2px;
+    font-weight: 600;
 }
 
 /* Navigation */
@@ -127,6 +143,8 @@ h1, h2, h3, h4 {
     margin-bottom: 8px;
     transition: var(--transition);
     font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .nav-item:hover {
@@ -194,8 +212,14 @@ h1, h2, h3, h4 {
     background: transparent;
     outline: none;
     width: 100%;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-primary);
+    font-weight: 500;
+}
+
+.search-bar input::placeholder {
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .header-actions {
@@ -251,17 +275,25 @@ h1, h2, h3, h4 {
     border-left: 1px solid var(--border-gray);
 }
 
+.user-profile span {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
+}
+
 .avatar {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     background: var(--gold-gradient);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--white);
-    font-weight: 600;
-    font-size: 0.85rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
 }
 
 /* Content Sections */
@@ -288,8 +320,10 @@ h1, h2, h3, h4 {
 }
 
 .section-header h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 /* Buttons */
@@ -297,21 +331,23 @@ h1, h2, h3, h4 {
     background: var(--gold-gradient);
     color: var(--white);
     border: none;
-    padding: 12px 24px;
+    padding: 14px 28px;
     border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     transition: var(--transition);
     box-shadow: var(--shadow-gold);
+    letter-spacing: 0.3px;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 25px rgba(201, 169, 98, 0.35);
+    filter: brightness(1.05);
 }
 
 .btn-secondary {
@@ -320,8 +356,8 @@ h1, h2, h3, h4 {
     border: 1px solid var(--border-gray);
     padding: 12px 24px;
     border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -398,15 +434,19 @@ h1, h2, h3, h4 {
 }
 
 .stat-info h3 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
+    letter-spacing: -0.5px;
 }
 
 .stat-info p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Cards */
@@ -427,15 +467,18 @@ h1, h2, h3, h4 {
 }
 
 .card-header h3 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .card-header a {
     color: var(--gold-primary);
     text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .card-header a:hover {
@@ -461,19 +504,21 @@ h1, h2, h3, h4 {
 
 .data-table th {
     text-align: left;
-    padding: 12px 15px;
+    padding: 14px 16px;
     background: var(--light-gray);
-    color: var(--text-secondary);
-    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    letter-spacing: 0.8px;
+    font-weight: 700;
 }
 
 .data-table td {
-    padding: 15px;
+    padding: 16px;
     border-bottom: 1px solid var(--border-gray);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
 .data-table tbody tr:hover {
@@ -496,10 +541,11 @@ h1, h2, h3, h4 {
 /* Stock Status Badges */
 .stock-badge {
     display: inline-block;
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .stock-badge.in-stock {
@@ -557,16 +603,18 @@ h1, h2, h3, h4 {
 }
 
 .category-item-name {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
 }
 
 .category-item-count {
     background: var(--white);
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: var(--gold-dark);
 }
 
@@ -794,8 +842,10 @@ h1, h2, h3, h4 {
 }
 
 .modal-header h3 {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .btn-close {
@@ -859,10 +909,11 @@ h1, h2, h3, h4 {
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.2px;
 }
 
 .form-group label i {
@@ -875,11 +926,12 @@ h1, h2, h3, h4 {
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 9px 12px;
+    padding: 10px 14px;
     border: 1px solid var(--border-gray);
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-primary);
+    font-weight: 500;
     transition: var(--transition);
     font-family: 'Montserrat', sans-serif;
     background: var(--white);
@@ -888,7 +940,8 @@ h1, h2, h3, h4 {
 .form-group input::placeholder,
 .form-group textarea::placeholder {
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .form-group input[type="file"] {
@@ -1000,7 +1053,7 @@ h1, h2, h3, h4 {
     right: 30px;
     background: var(--success);
     color: var(--white);
-    padding: 15px 25px;
+    padding: 16px 28px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -1010,6 +1063,9 @@ h1, h2, h3, h4 {
     opacity: 0;
     transition: var(--transition);
     z-index: 2000;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
 }
 
 .toast.show {
@@ -1071,13 +1127,14 @@ h1, h2, h3, h4 {
 
 /* Price Display */
 .price {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
+    font-size: 0.95rem;
 }
 
 .margin-positive {
     color: var(--success);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .margin-negative {
