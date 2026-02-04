@@ -369,7 +369,6 @@ function openEditProductModal(productId) {
     document.getElementById('localSelling').value = product.localSelling;
     document.getElementById('abroadPrice').value = product.abroadPrice;
     document.getElementById('abroadSelling').value = product.abroadSelling;
-    document.getElementById('productDescription').value = product.description || '';
     document.getElementById('localImageUrl').value = product.localImageUrl || '';
     document.getElementById('abroadImageUrl').value = product.abroadImageUrl || '';
     
@@ -419,7 +418,24 @@ async function saveProduct(e) {
     const form = document.getElementById('productForm');
     if (!form.checkValidity()) {
         form.reportValidity();
+        showToast('⚠️ Please fill in all required fields', 'warning');
         return;
+    }
+    
+    // Validate pricing
+    const localPrice = parseFloat(document.getElementById('localPrice').value) || 0;
+    const localSelling = parseFloat(document.getElementById('localSelling').value) || 0;
+    const abroadPrice = parseFloat(document.getElementById('abroadPrice').value) || 0;
+    const abroadSelling = parseFloat(document.getElementById('abroadSelling').value) || 0;
+    
+    if (localSelling < localPrice) {
+        const confirmed = confirm('⚠️ Local selling price is lower than cost price. This will result in a loss. Continue anyway?');
+        if (!confirmed) return;
+    }
+    
+    if (abroadSelling < abroadPrice) {
+        const confirmed = confirm('⚠️ Abroad selling price is lower than cost price. This will result in a loss. Continue anyway?');
+        if (!confirmed) return;
     }
     
     const productId = document.getElementById('productId').value;
@@ -455,7 +471,6 @@ async function saveProduct(e) {
         localSelling: parseFloat(document.getElementById('localSelling').value) || 0,
         abroadPrice: parseFloat(document.getElementById('abroadPrice').value) || 0,
         abroadSelling: parseFloat(document.getElementById('abroadSelling').value) || 0,
-        description: document.getElementById('productDescription').value,
         localImageFile: localImageFileData,
         localImageUrl: document.getElementById('localImageUrl').value || null,
         abroadImageFile: abroadImageFileData,
@@ -465,7 +480,7 @@ async function saveProduct(e) {
     };
     
     // Show loading state
-    showToast('Saving product...');
+    showToast('💾 Saving product...', 'info');
     
     if (productId) {
         // Update existing product
@@ -476,7 +491,12 @@ async function saveProduct(e) {
         if (index !== -1) {
             products[index] = productData;
         }
-        showToast(savedToCloud ? 'Product updated & synced!' : 'Product updated locally!');
+        
+        if (savedToCloud) {
+            showToast('✅ Product updated successfully!', 'success');
+        } else {
+            showToast('⚠️ Product updated but sync failed', 'warning');
+        }
     } else {
         // Add new product
         const savedToCloud = await saveToSupabase(productData, false);
@@ -486,7 +506,12 @@ async function saveProduct(e) {
         }
         
         products.unshift(productData);
-        showToast(savedToCloud ? 'Product added & synced!' : 'Product added locally!');
+        
+        if (savedToCloud) {
+            showToast('✅ Product added successfully!', 'success');
+        } else {
+            showToast('⚠️ Product added but sync failed', 'warning');
+        }
     }
     
     clearFormDraft();
@@ -499,9 +524,14 @@ async function saveProduct(e) {
 
 // Delete Product
 async function deleteProduct(productId) {
-    if (confirm('Are you sure you want to delete this product?')) {
+    const product = products.find(p => p.id == productId);
+    const productName = product ? product.name : 'this product';
+    
+    if (confirm(`🗑️ Are you sure you want to delete "${productName}"?\n\nThis action cannot be undone.`)) {
+        showToast('🗑️ Deleting product...', 'info');
+        
         // Delete from Supabase
-        await deleteFromSupabase(productId);
+        const deleted = await deleteFromSupabase(productId);
         
         products = products.filter(p => p.id != productId);
         updateDashboard();
@@ -826,9 +856,32 @@ function getStockLabel(stock) {
 }
 
 // Show Toast Notification
-function showToast(message) {
+function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
-    document.getElementById('toastMessage').textContent = message;
+    const toastMessage = document.getElementById('toastMessage');
+    
+    if (!toast || !toastMessage) return;
+    
+    toastMessage.textContent = message;
+    
+    // Remove existing type classes
+    toast.classList.remove('toast-success', 'toast-error', 'toast-warning', 'toast-info');
+    
+    // Add type-specific class
+    switch(type) {
+        case 'error':
+            toast.classList.add('toast-error');
+            break;
+        case 'warning':
+            toast.classList.add('toast-warning');
+            break;
+        case 'info':
+            toast.classList.add('toast-info');
+            break;
+        default:
+            toast.classList.add('toast-success');
+    }
+    
     toast.classList.add('show');
     
     setTimeout(() => {
@@ -1165,7 +1218,6 @@ function saveFormDraft() {
         localSelling: document.getElementById('localSelling').value,
         abroadPrice: document.getElementById('abroadPrice').value,
         abroadSelling: document.getElementById('abroadSelling').value,
-        description: document.getElementById('productDescription').value,
         localImageUrl: document.getElementById('localImageUrl').value,
         abroadImageUrl: document.getElementById('abroadImageUrl').value,
         timestamp: new Date().toISOString()
@@ -1204,7 +1256,6 @@ function restoreFormDraft() {
         if (draft.localSelling) document.getElementById('localSelling').value = draft.localSelling;
         if (draft.abroadPrice) document.getElementById('abroadPrice').value = draft.abroadPrice;
         if (draft.abroadSelling) document.getElementById('abroadSelling').value = draft.abroadSelling;
-        if (draft.description) document.getElementById('productDescription').value = draft.description;
         if (draft.localImageUrl) document.getElementById('localImageUrl').value = draft.localImageUrl;
         if (draft.abroadImageUrl) document.getElementById('abroadImageUrl').value = draft.abroadImageUrl;
         
@@ -1232,6 +1283,104 @@ setInterval(() => {
     }
 }, 30000);
 
+// =============================================
+// Real-time Form Enhancements
+// =============================================
+
+// Calculate and display profit margin in real-time
+function calculateMargin(market) {
+    const costId = market === 'local' ? 'localPrice' : 'abroadPrice';
+    const sellingId = market === 'local' ? 'localSelling' : 'abroadSelling';
+    const marginId = market === 'local' ? 'localMargin' : 'abroadMargin';
+    
+    const cost = parseFloat(document.getElementById(costId).value) || 0;
+    const selling = parseFloat(document.getElementById(sellingId).value) || 0;
+    
+    const marginElement = document.getElementById(marginId);
+    if (!marginElement) return;
+    
+    if (cost > 0 && selling > 0) {
+        const margin = ((selling - cost) / cost * 100).toFixed(1);
+        const profit = (selling - cost).toFixed(2);
+        
+        if (margin > 0) {
+            marginElement.innerHTML = `<i class="fas fa-chart-line"></i> Profit: KSH ${profit} (${margin}% margin)`;
+            marginElement.style.color = '#4CAF50';
+        } else if (margin < 0) {
+            marginElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Loss: KSH ${profit} (${margin}% margin)`;
+            marginElement.style.color = '#F44336';
+        } else {
+            marginElement.innerHTML = `<i class="fas fa-info-circle"></i> No profit margin`;
+            marginElement.style.color = '#FF9800';
+        }
+    } else {
+        marginElement.innerHTML = `<i class="fas fa-chart-line"></i> Profit margin: 0%`;
+        marginElement.style.color = '#9B9B9B';
+    }
+}
+
+
+
+// Form validation with visual feedback
+function validateFormField(field) {
+    if (field.hasAttribute('required') && !field.value) {
+        field.classList.add('error');
+        return false;
+    } else {
+        field.classList.remove('error');
+        return true;
+    }
+}
+
+// Add real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('productForm');
+    if (form) {
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', function() {
+                validateFormField(this);
+            });
+            
+            field.addEventListener('input', function() {
+                if (this.classList.contains('error')) {
+                    validateFormField(this);
+                }
+            });
+        });
+    }
+});
+
+// Auto-format price inputs
+function formatPriceInput(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    }
+}
+
+// Initialize price formatting on load
+document.addEventListener('DOMContentLoaded', function() {
+    ['localPrice', 'localSelling', 'abroadPrice', 'abroadSelling'].forEach(formatPriceInput);
+});
+
+// Keyboard shortcuts for better UX
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + S to save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        const modal = document.getElementById('productModal');
+        if (modal && modal.classList.contains('active')) {
+            const saveBtn = document.querySelector('.btn-primary[onclick*=\"saveProduct\"]');
+            if (saveBtn) saveBtn.click();
+        }
+    }
+});
+
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
 window.openAddProductModal = openAddProductModal;
@@ -1247,4 +1396,5 @@ window.exportInventory = exportInventory;
 window.syncWithCloud = syncWithCloud;
 window.previewImage = previewImage;
 window.previewImageUrl = previewImageUrl;
+window.calculateMargin = calculateMargin;
 

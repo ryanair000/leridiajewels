@@ -603,13 +603,21 @@
                 <button class="btn-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <form id="productForm">
+                <form id="productForm" autocomplete="off">
                     <input type="hidden" id="productId">
                     <input type="hidden" id="productSKU">
                     
+                    <!-- Step Indicator -->
+                    <div class="form-progress">
+                        <div class="progress-step active">1. Basic Info</div>
+                        <div class="progress-step">2. Pricing</div>
+                        <div class="progress-step">3. Images</div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="productName">Product Name *</label>
-                        <input type="text" id="productName" required>
+                        <input type="text" id="productName" required placeholder="e.g., Gold Plated Heart Earrings" autofocus>
+                        <small class="form-help"><i class="fas fa-info-circle"></i> Enter a descriptive name for the product</small>
                     </div>
                     
                     <div class="form-row">
@@ -624,12 +632,14 @@
                                 <option value="Anklets">Anklets</option>
                                 <option value="Accessories">Accessories</option>
                             </select>
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Choose the main category</small>
                         </div>
                         <div class="form-group">
                             <label for="productType">Type *</label>
                             <select id="productType" required>
-                                <option value="">Select Type</option>
+                                <option value="">Select type after category</option>
                             </select>
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Specific type within category</small>
                         </div>
                     </div>
                     
@@ -637,60 +647,69 @@
                         <div class="form-group">
                             <label for="productSize">Size</label>
                             <select id="productSize">
-                                <option value="">Select Size</option>
+                                <option value="">Not applicable</option>
                                 <option value="Small">Small</option>
                                 <option value="Medium">Medium</option>
                                 <option value="Large">Large</option>
+                                <option value="One Size">One Size</option>
                             </select>
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Optional - for sized items only</small>
                         </div>
                         <div class="form-group">
                             <label for="productQuality">Quality *</label>
                             <select id="productQuality" required>
-                                <option value="">Select Quality</option>
+                                <option value="">Select material/quality</option>
                                 <option value="Gold plated">Gold plated</option>
                                 <option value="Stainless steel">Stainless steel</option>
                                 <option value="Gemstones">Gemstones</option>
                                 <option value="Silver 925">Silver 925</option>
                                 <option value="Brass">Brass</option>
                             </select>
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Material or quality level</small>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="productStock">Quantity (pieces)</label>
-                            <input type="number" id="productStock" min="0" value="0">
+                            <input type="number" id="productStock" min="0" value="0" placeholder="0">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Current stock quantity</small>
                         </div>
                         <div class="form-group">
                             <label for="productWeight">Weight (grams)</label>
-                            <input type="number" id="productWeight" step="0.01" min="0" placeholder="Optional">
+                            <input type="number" id="productWeight" step="0.01" min="0" placeholder="e.g., 5.5">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Optional - for shipping calculations</small>
                         </div>
                     </div>
                     
                     <div class="form-section">
-                        <h4><i class="fas fa-map-marker-alt"></i> Local Pricing</h4>
+                        <h4><i class="fas fa-map-marker-alt"></i> Local Pricing (KSH)</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="localPrice">Cost Price (KSH)</label>
-                                <input type="number" id="localPrice" step="0.01" min="0" value="0">
+                                <label for="localPrice">Cost Price (KSH) *</label>
+                                <input type="number" id="localPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('local')">
+                                <small class="form-help"><i class="fas fa-info-circle"></i> What you paid for this item</small>
                             </div>
                             <div class="form-group">
-                                <label for="localSelling">Selling Price (KSH)</label>
-                                <input type="number" id="localSelling" step="0.01" min="0" value="0">
+                                <label for="localSelling">Selling Price (KSH) *</label>
+                                <input type="number" id="localSelling" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('local')">
+                                <small class="form-help margin-display" id="localMargin"><i class="fas fa-chart-line"></i> Profit margin: 0%</small>
                             </div>
                         </div>
                     </div>
                     
                     <div class="form-section">
-                        <h4><i class="fas fa-globe"></i> Abroad Pricing</h4>
+                        <h4><i class="fas fa-globe"></i> Abroad Pricing (KSH)</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="abroadPrice">Cost Price (KSH)</label>
-                                <input type="number" id="abroadPrice" step="0.01" min="0" value="0">
+                                <label for="abroadPrice">Cost Price (KSH) *</label>
+                                <input type="number" id="abroadPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('abroad')">
+                                <small class="form-help"><i class="fas fa-info-circle"></i> Cost for export market</small>
                             </div>
                             <div class="form-group">
-                                <label for="abroadSelling">Selling Price (KSH)</label>
-                                <input type="number" id="abroadSelling" step="0.01" min="0" value="0">
+                                <label for="abroadSelling">Selling Price (KSH) *</label>
+                                <input type="number" id="abroadSelling" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('abroad')">
+                                <small class="form-help margin-display" id="abroadMargin"><i class="fas fa-chart-line"></i> Profit margin: 0%</small>
                             </div>
                         </div>
                     </div>
@@ -698,50 +717,55 @@
                     <!-- Images Section -->
                     <div class="form-section">
                         <h4><i class="fas fa-image"></i> Product Images</h4>
+                        <p class="section-description">Add images for each market. You can upload files or provide URLs.</p>
                         <div class="form-row">
                             <!-- Local Product Images -->
                             <div class="form-group-half">
-                                <label class="section-label"><i class="fas fa-map-marker-alt"></i> Local Product Images</label>
+                                <label class="section-label"><i class="fas fa-map-marker-alt"></i> Local Market Images</label>
                                 <div class="form-group">
                                     <label for="localImageFile"><i class="fas fa-upload"></i> Upload Image</label>
-                                    <input type="file" id="localImageFile" accept="image/*" onchange="previewImage(event, 'local-file')">
+                                    <input type="file" id="localImageFile" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'local-file')">
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG - Max 5MB</small>
                                     <div class="image-preview" id="localFilePreview"></div>
                                 </div>
                                 <div class="form-group">
                                     <label for="localImageUrl"><i class="fas fa-link"></i> Or Image URL</label>
-                                    <input type="url" id="localImageUrl" placeholder="https://example.com/image.jpg" onchange="previewImageUrl('local-url')">
+                                    <input type="url" id="localImageUrl" placeholder="https://example.com/image.jpg" oninput="previewImageUrl('local-url')">
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> Direct link to image file</small>
                                     <div class="image-preview" id="localUrlPreview"></div>
                                 </div>
                             </div>
                             
                             <!-- Abroad Product Images -->
                             <div class="form-group-half">
-                                <label class="section-label"><i class="fas fa-globe"></i> Abroad Product Images</label>
+                                <label class="section-label"><i class="fas fa-globe"></i> Export Market Images</label>
                                 <div class="form-group">
                                     <label for="abroadImageFile"><i class="fas fa-upload"></i> Upload Image</label>
-                                    <input type="file" id="abroadImageFile" accept="image/*" onchange="previewImage(event, 'abroad-file')">
+                                    <input type="file" id="abroadImageFile" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'abroad-file')">
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG - Max 5MB</small>
                                     <div class="image-preview" id="abroadFilePreview"></div>
                                 </div>
                                 <div class="form-group">
                                     <label for="abroadImageUrl"><i class="fas fa-link"></i> Or Image URL</label>
-                                    <input type="url" id="abroadImageUrl" placeholder="https://example.com/image.jpg" onchange="previewImageUrl('abroad-url')">
+                                    <input type="url" id="abroadImageUrl" placeholder="https://example.com/image.jpg" oninput="previewImageUrl('abroad-url')">
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> Direct link to image file</small>
                                     <div class="image-preview" id="abroadUrlPreview"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Description Section -->
-                    <div class="form-group">
-                        <label for="productDescription"><i class="fas fa-align-left"></i> Description (Optional)</label>
-                        <textarea id="productDescription" rows="3" placeholder="Add any additional details about this product..."></textarea>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="saveFormDraft()" style="margin-right: auto;"><i class="fas fa-save"></i> Save Draft</button>
-                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn-primary" onclick="saveProduct(event)">Save Product</button>
+                <button type="button" class="btn-secondary" onclick="saveFormDraft()" style="margin-right: auto;" title="Save your progress as a draft">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+                <button type="button" class="btn-secondary" onclick="closeModal()" title="Cancel and close">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn-primary" onclick="saveProduct(event)" title="Save product to database (Ctrl+S)">
+                    <i class="fas fa-check"></i> Save Product
+                </button>
             </div>
         </div>
     </div>
