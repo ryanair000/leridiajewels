@@ -76,8 +76,9 @@ async function initializeApp() {
         isOnline = true;
         console.log('Connected to Supabase');
     } else {
-        console.log('Running in offline mode (localStorage)');
-        isOnline = false;
+        console.error('Failed to connect to Supabase');
+        alert('Failed to connect to database. Please check your connection and refresh.');
+        return;
     }
     
     setupNavigation();
@@ -85,7 +86,7 @@ async function initializeApp() {
     populateCategoryFilter();
     setupSearch();
     
-    // Load products from Supabase or localStorage
+    // Load products from Supabase
     await loadProducts();
     
     updateDashboard();
@@ -114,30 +115,31 @@ function updateConnectionStatus() {
     }
 }
 
-// Load Products from Supabase or localStorage
+// Load Products from Supabase
 async function loadProducts() {
-    if (isOnline && db) {
-        try {
-            const { data, error } = await db
-                .from('products')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (error) {
-                console.error('Supabase error:', error);
-                // Fallback to localStorage
-                products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
-            } else {
-                products = data.map(transformFromDb) || [];
-                // Also save to localStorage as backup
-                localStorage.setItem('leridiaProducts', JSON.stringify(products));
-            }
-        } catch (err) {
-            console.error('Failed to load from Supabase:', err);
-            products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+    if (!isOnline || !db) {
+        console.error('No database connection');
+        return;
+    }
+    
+    try {
+        const { data, error } = await db
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Supabase error:', error);
+            showToast('Error loading products: ' + error.message);
+            products = [];
+        } else {
+            products = data.map(transformFromDb) || [];
+            console.log(`Loaded ${products.length} products from Supabase`);
         }
-    } else {
-        products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+    } catch (err) {
+        console.error('Failed to load from Supabase:', err);
+        showToast('Failed to load products');
+        products = [];
     }
 }
 
@@ -487,7 +489,6 @@ async function saveProduct(e) {
         showToast(savedToCloud ? 'Product added & synced!' : 'Product added locally!');
     }
     
-    saveToLocalStorage();
     clearFormDraft();
     closeModal();
     updateDashboard();
@@ -503,7 +504,6 @@ async function deleteProduct(productId) {
         await deleteFromSupabase(productId);
         
         products = products.filter(p => p.id != productId);
-        saveToLocalStorage();
         updateDashboard();
         renderProducts();
         renderInventory();
@@ -543,7 +543,6 @@ async function updateStock(e) {
         // Update in Supabase
         await saveToSupabase(product, true);
         
-        saveToLocalStorage();
         updateDashboard();
         renderProducts();
         renderInventory();
@@ -551,11 +550,6 @@ async function updateStock(e) {
     }
     
     closeStockModal();
-}
-
-// Save to Local Storage (backup)
-function saveToLocalStorage() {
-    localStorage.setItem('leridiaProducts', JSON.stringify(products));
 }
 
 // Update Dashboard

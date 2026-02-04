@@ -4,14 +4,15 @@
 
 // Check for Netlify environment variables (injected at build) or use defaults for local dev
 const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://flannloidfpzzcbndiiu.supabase.co';
-const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || '';
+const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYW5ubG9pZGZwenpjYm5kaWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzM2NDUsImV4cCI6MjA4NTgwOTY0NX0.Na3DJN-C3rvDJJjfNyiaVWKDGjJ2BPHxP1L443QbbAE';
 
 // Initialize Supabase Client
 let supabaseClient = null;
 
 function initSupabase() {
     if (!SUPABASE_ANON_KEY) {
-        console.warn('Supabase key not configured. Running in offline mode.');
+        console.error('Supabase key not configured. Cannot proceed.');
+        alert('Database configuration error. Please check Supabase settings.');
         return false;
     }
     
