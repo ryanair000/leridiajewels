@@ -757,9 +757,6 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="saveFormDraft()" style="margin-right: auto;" title="Save your progress as a draft">
-                    <i class="fas fa-save"></i> Save Draft
-                </button>
                 <button type="button" class="btn-secondary" onclick="closeModal()" title="Cancel and close">
                     <i class="fas fa-times"></i> Cancel
                 </button>
@@ -794,11 +791,8 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">Success!</span>
-    </div>
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <!-- Bulk Actions Bar -->
     <div class="bulk-actions-bar" id="bulkActionsBar">

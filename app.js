@@ -339,10 +339,6 @@ function openAddProductModal() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
-    
-    // Restore draft if exists
-    restoreFormDraft();
-    
     document.getElementById('productModal').classList.add('active');
 }
 
@@ -391,18 +387,6 @@ function openEditProductModal(productId) {
 
 // Close Modal
 function closeModal() {
-    // Ask if user wants to save draft
-    const form = document.getElementById('productForm');
-    const hasData = document.getElementById('productName').value.trim() !== '';
-    
-    if (hasData && !document.getElementById('productId').value) {
-        if (confirm('Save form data as draft?')) {
-            saveFormDraft();
-        } else {
-            clearFormDraft();
-        }
-    }
-    
     document.getElementById('productModal').classList.remove('active');
     // Clear image previews
     document.getElementById('localFilePreview').innerHTML = '';
@@ -529,7 +513,6 @@ async function saveProduct(e) {
         closeModal();
     }
     
-    clearFormDraft();
     updateDashboard();
     renderProducts();
     renderInventory();
@@ -869,38 +852,42 @@ function getStockLabel(stock) {
     return 'In Stock';
 }
 
-// Show Toast Notification
+// Modern Toast Notification System
 function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
     
-    if (!toast || !toastMessage) return;
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
     
-    toastMessage.textContent = message;
+    // Icon based on type
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
     
-    // Remove existing type classes
-    toast.classList.remove('toast-success', 'toast-error', 'toast-warning', 'toast-info');
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas ${icons[type] || icons.success}"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
     
-    // Add type-specific class
-    switch(type) {
-        case 'error':
-            toast.classList.add('toast-error');
-            break;
-        case 'warning':
-            toast.classList.add('toast-warning');
-            break;
-        case 'info':
-            toast.classList.add('toast-info');
-            break;
-        default:
-            toast.classList.add('toast-success');
-    }
+    container.appendChild(toast);
     
-    toast.classList.add('show');
-    
+    // Auto remove after 4 seconds
     setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 }
 
 // Export Inventory
@@ -1214,88 +1201,6 @@ function updateCharts() {
         createProfitChart();
     }
 }
-
-// =============================================
-// Form Draft Persistence
-// =============================================
-
-function saveFormDraft() {
-    const draft = {
-        name: document.getElementById('productName').value,
-        category: document.getElementById('productCategory').value,
-        type: document.getElementById('productType').value,
-        size: document.getElementById('productSize').value,
-        quality: document.getElementById('productQuality').value,
-        stock: document.getElementById('productStock').value,
-        weight: document.getElementById('productWeight').value,
-        localPrice: document.getElementById('localPrice').value,
-        localSelling: document.getElementById('localSelling').value,
-        abroadPrice: document.getElementById('abroadPrice').value,
-        abroadSelling: document.getElementById('abroadSelling').value,
-        localImageUrl: document.getElementById('localImageUrl').value,
-        abroadImageUrl: document.getElementById('abroadImageUrl').value,
-        timestamp: new Date().toISOString()
-    };
-    
-    localStorage.setItem('leridia_form_draft', JSON.stringify(draft));
-    showToast('Draft saved!');
-}
-
-function restoreFormDraft() {
-    const draftJson = localStorage.getItem('leridia_form_draft');
-    if (!draftJson) return;
-    
-    try {
-        const draft = JSON.parse(draftJson);
-        
-        // Check if draft is not too old (24 hours)
-        const draftAge = new Date() - new Date(draft.timestamp);
-        if (draftAge > 24 * 60 * 60 * 1000) {
-            clearFormDraft();
-            return;
-        }
-        
-        // Restore values
-        if (draft.name) document.getElementById('productName').value = draft.name;
-        if (draft.category) {
-            document.getElementById('productCategory').value = draft.category;
-            updateTypeOptions();
-        }
-        if (draft.type) document.getElementById('productType').value = draft.type;
-        if (draft.size) document.getElementById('productSize').value = draft.size;
-        if (draft.quality) document.getElementById('productQuality').value = draft.quality;
-        if (draft.stock) document.getElementById('productStock').value = draft.stock;
-        if (draft.weight) document.getElementById('productWeight').value = draft.weight;
-        if (draft.localPrice) document.getElementById('localPrice').value = draft.localPrice;
-        if (draft.localSelling) document.getElementById('localSelling').value = draft.localSelling;
-        if (draft.abroadPrice) document.getElementById('abroadPrice').value = draft.abroadPrice;
-        if (draft.abroadSelling) document.getElementById('abroadSelling').value = draft.abroadSelling;
-        if (draft.localImageUrl) document.getElementById('localImageUrl').value = draft.localImageUrl;
-        if (draft.abroadImageUrl) document.getElementById('abroadImageUrl').value = draft.abroadImageUrl;
-        
-        showToast('Draft restored!');
-    } catch (e) {
-        console.error('Error restoring draft:', e);
-        clearFormDraft();
-    }
-}
-
-function clearFormDraft() {
-    localStorage.removeItem('leridia_form_draft');
-}
-
-// Auto-save draft every 30 seconds if form has data
-setInterval(() => {
-    const modal = document.getElementById('productModal');
-    if (modal && modal.classList.contains('active')) {
-        const hasData = document.getElementById('productName').value.trim() !== '';
-        const isEditing = document.getElementById('productId').value !== '';
-        
-        if (hasData && !isEditing) {
-            saveFormDraft();
-        }
-    }
-}, 30000);
 
 // =============================================
 // Real-time Form Enhancements
