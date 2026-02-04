@@ -152,6 +152,8 @@ function transformFromDb(record) {
         abroadPrice: record.abroad_price,
         abroadSelling: record.abroad_selling,
         description: record.description,
+        imageUrl: record.image_url,
+        imagePath: record.image_path,
         createdAt: record.created_at,
         updatedAt: record.updated_at
     };
@@ -171,7 +173,9 @@ function transformToDb(product) {
         local_selling: product.localSelling,
         abroad_price: product.abroadPrice,
         abroad_selling: product.abroadSelling,
-        description: product.description || null
+        description: product.description || null,
+        image_url: product.imageUrl || null,
+        image_path: product.imagePath || null
     };
 }
 
@@ -347,6 +351,15 @@ function openEditProductModal(productId) {
     document.getElementById('abroadPrice').value = product.abroadPrice;
     document.getElementById('abroadSelling').value = product.abroadSelling;
     document.getElementById('productDescription').value = product.description || '';
+    document.getElementById('productImageUrl').value = product.imageUrl || '';
+    
+    // Show existing images
+    if (product.imageUrl) {
+        document.getElementById('abroadImagePreview').innerHTML = `<img src="${product.imageUrl}" alt="Product">`;
+    }
+    if (product.imagePath) {
+        document.getElementById('localImagePreview').innerHTML = `<img src="${product.imagePath}" alt="Product">`;
+    }
     
     document.getElementById('productModal').classList.add('active');
 }
@@ -354,6 +367,9 @@ function openEditProductModal(productId) {
 // Close Modal
 function closeModal() {
     document.getElementById('productModal').classList.remove('active');
+    // Clear image previews
+    document.getElementById('localImagePreview').innerHTML = '';
+    document.getElementById('abroadImagePreview').innerHTML = '';
 }
 
 // Save Product
@@ -370,6 +386,15 @@ async function saveProduct(e) {
     const category = document.getElementById('productCategory').value;
     const type = document.getElementById('productType').value;
     
+    // Handle image file upload
+    const imageFile = document.getElementById('productImageFile').files[0];
+    let imagePath = productId ? products.find(p => p.id == productId)?.imagePath : null;
+    
+    if (imageFile) {
+        // Convert image to base64 for localStorage
+        imagePath = await fileToBase64(imageFile);
+    }
+    
     const productData = {
         id: productId || null,
         name: document.getElementById('productName').value,
@@ -384,6 +409,8 @@ async function saveProduct(e) {
         abroadPrice: parseFloat(document.getElementById('abroadPrice').value),
         abroadSelling: parseFloat(document.getElementById('abroadSelling').value),
         description: document.getElementById('productDescription').value,
+        imageUrl: document.getElementById('productImageUrl').value || null,
+        imagePath: imagePath,
         createdAt: productId ? products.find(p => p.id == productId)?.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
@@ -511,7 +538,7 @@ function renderRecentProducts() {
     if (recentProducts.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="empty-state">
+                <td colspan="6" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <p>No products yet</p>
                 </td>
@@ -522,6 +549,11 @@ function renderRecentProducts() {
     
     tbody.innerHTML = recentProducts.map(product => `
         <tr>
+            <td>
+                <div class="product-image">
+                    <img src="${getProductImage(product)}" alt="${product.name}">
+                </div>
+            </td>
             <td><strong>${product.name}</strong></td>
             <td>${product.category}</td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
@@ -562,7 +594,7 @@ function renderProducts(filteredProducts = null) {
     if (productList.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="11" class="empty-state">
+                <td colspan="12" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <h4>No products found</h4>
                     <p>Add your first product to get started</p>
@@ -574,6 +606,7 @@ function renderProducts(filteredProducts = null) {
     
     tbody.innerHTML = productList.map(product => `
         <tr>
+            <td><div class="product-image"><img src="${getProductImage(product)}" alt="${product.name}"></div></td>
             <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.sku}</small></td>
             <td>${product.category}</td>
             <td>${product.type}</td>
@@ -804,6 +837,44 @@ async function syncWithCloud() {
     showToast('Sync complete!');
 }
 
+// Convert file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+// Preview image upload
+async function previewImage(event, type) {
+    const file = event.target.files[0];
+    if (file) {
+        const base64 = await fileToBase64(file);
+        document.getElementById('localImagePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+    }
+}
+
+// Preview image URL
+function previewImageUrl() {
+    const url = document.getElementById('productImageUrl').value;
+    if (url) {
+        document.getElementById('abroadImagePreview').innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=\\'image-error\\'>Invalid image URL</div>'">`;
+    }
+}
+
+// Get product image
+function getProductImage(product) {
+    // Priority: imagePath (local) > imageUrl (abroad) > placeholder
+    if (product.imagePath) {
+        return product.imagePath;
+    } else if (product.imageUrl) {
+        return product.imageUrl;
+    }
+    return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f5f5f5" width="100" height="100"/%3E%3Ctext fill="%23c9a962" font-family="Arial" font-size="14" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+}
+
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
 window.openAddProductModal = openAddProductModal;
@@ -817,3 +888,5 @@ window.updateStock = updateStock;
 window.updateTypeOptions = updateTypeOptions;
 window.exportInventory = exportInventory;
 window.syncWithCloud = syncWithCloud;
+window.previewImage = previewImage;
+window.previewImageUrl = previewImageUrl;

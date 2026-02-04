@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS products (
     abroad_price DECIMAL(10, 2) NOT NULL,
     abroad_selling DECIMAL(10, 2) NOT NULL,
     description TEXT,
+    image_url TEXT,
+    image_path TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -63,11 +65,11 @@ CREATE TRIGGER update_products_updated_at
 -- OPTIONAL: Insert sample data
 -- =============================================
 /*
-INSERT INTO products (name, sku, category, type, size, quality, stock, local_price, local_selling, abroad_price, abroad_selling, description)
+INSERT INTO products (name, sku, category, type, size, quality, stock, local_price, local_selling, abroad_price, abroad_selling, description, image_url)
 VALUES 
-    ('Golden Rose Stud Earrings', 'LJ-EAST-0001', 'Earrings', 'Studs', 'Small', 'Gold plated', 25, 1500.00, 2999.00, 1800.00, 3999.00, 'Elegant rose design stud earrings'),
-    ('Pearl Drop Necklace', 'LJ-NEST-0002', 'Necklaces', 'Pendant', 'Medium', 'Silver 925', 8, 4500.00, 8999.00, 5500.00, 11999.00, 'Beautiful pearl pendant necklace'),
-    ('Minimalist Band Ring', 'LJ-RIMI-0003', 'Rings', 'Minimalist ring', 'Small', 'Stainless steel', 0, 1200.00, 2499.00, 1500.00, 3499.00, 'Simple and elegant minimalist ring'),
-    ('Twisted Rope Bangle', 'LJ-BRBA-0004', 'Bracelets/Bangles', 'Twisted / rope bangles', 'Large', 'Gold plated', 15, 2800.00, 5499.00, 3500.00, 7499.00, 'Beautiful twisted rope design bangle'),
-    ('Crystal Charm Anklet', 'LJ-ANCH-0005', 'Anklets', 'Charm anklet', 'Medium', 'Gemstones', 12, 2200.00, 4499.00, 2800.00, 5999.00, 'Sparkling crystal charm anklet');
+    ('Golden Rose Stud Earrings', 'LJ-EAST-0001', 'Earrings', 'Studs', 'Small', 'Gold plated', 25, 1500.00, 2999.00, 1800.00, 3999.00, 'Elegant rose design stud earrings', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908'),
+    ('Pearl Drop Necklace', 'LJ-NEST-0002', 'Necklaces', 'Pendant', 'Medium', 'Silver 925', 8, 4500.00, 8999.00, 5500.00, 11999.00, 'Beautiful pearl pendant necklace', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f'),
+    ('Minimalist Band Ring', 'LJ-RIMI-0003', 'Rings', 'Minimalist ring', 'Small', 'Stainless steel', 0, 1200.00, 2499.00, 1500.00, 3499.00, 'Simple and elegant minimalist ring', 'https://images.unsplash.com/photo-1605100804763-247f67b3557e'),
+    ('Twisted Rope Bangle', 'LJ-BRBA-0004', 'Bracelets/Bangles', 'Twisted / rope bangles', 'Large', 'Gold plated', 15, 2800.00, 5499.00, 3500.00, 7499.00, 'Beautiful twisted rope design bangle', 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a'),
+    ('Crystal Charm Anklet', 'LJ-ANCH-0005', 'Anklets', 'Charm anklet', 'Medium', 'Gemstones', 12, 2200.00, 4499.00, 2800.00, 5999.00, 'Sparkling crystal charm anklet', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338');
 */

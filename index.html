@@ -120,6 +120,7 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
+                                        <th>Image</th>
                                         <th>Product</th>
                                         <th>Category</th>
                                         <th>Stock</th>
@@ -187,6 +188,7 @@
                         <table class="data-table full-table">
                             <thead>
                                 <tr>
+                                    <th>Image</th>
                                     <th>Product Name</th>
                                     <th>Category</th>
                                     <th>Type</th>
@@ -625,7 +627,25 @@
                     
                     <div class="form-group">
                         <label for="productDescription">Description</label>
-                        <textarea id="productDescription" rows="3"></textarea>
+                        <textarea id="productDescription" rows="3" placeholder="Enter product description..."></textarea>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4><i class="fas fa-image"></i> Product Images</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productImageFile">Local Product Image</label>
+                                <input type="file" id="productImageFile" accept="image/*" onchange="previewImage(event, 'local')">
+                                <div class="image-preview" id="localImagePreview"></div>
+                                <small class="form-help">Upload image for local listing</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="productImageUrl">Abroad Product Image URL</label>
+                                <input type="url" id="productImageUrl" placeholder="https://example.com/image.jpg" onchange="previewImageUrl()">
+                                <div class="image-preview" id="abroadImagePreview"></div>
+                                <small class="form-help">Enter image URL for abroad listing</small>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
