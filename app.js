@@ -631,6 +631,16 @@ function renderRecentProducts() {
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
             <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
             <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteProduct('${product.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
         </tr>
     `).join('');
 }
@@ -645,7 +655,7 @@ function renderCategoryOverview() {
         const icon = categoryIcons[category] || 'fa-tag';
         
         return `
-            <div class="category-item">
+            <div class="category-item clickable" onclick="filterByCategory('${category}')" title="View ${category}">
                 <div class="category-item-info">
                     <div class="category-item-icon">
                         <i class="fas ${icon}"></i>
@@ -750,8 +760,14 @@ function renderInventory() {
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${getStockLabel(product.stock)}</span></td>
             <td>
                 <div class="action-buttons">
+                    <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Product">
+                        <i class="fas fa-pen"></i>
+                    </button>
                     <button class="action-btn stock" onclick="openStockModal('${product.id}')" title="Update Stock">
                         <i class="fas fa-boxes"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteProduct('${product.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </td>
@@ -794,6 +810,9 @@ function renderPricing() {
                     <div class="action-buttons">
                         <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Pricing">
                             <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteProduct('${product.id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </td>
@@ -1300,6 +1319,31 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Filter products by category
+function filterByCategory(category) {
+    showSection('products');
+    setTimeout(() => {
+        const filterSelect = document.getElementById('filterCategory');
+        if (filterSelect) {
+            filterSelect.value = category;
+            filterProducts();
+        }
+    }, 100);
+}
+
+// Filter inventory by stock status
+function filterInventoryByStatus(status) {
+    // This will be called after switching to inventory section
+    // We'll use a short timeout to ensure the section is visible first
+    setTimeout(() => {
+        const filterSelect = document.getElementById('filterStock');
+        if (filterSelect) {
+            filterSelect.value = status;
+            filterProducts();
+        }
+    }, 100);
+}
+
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
 window.openAddProductModal = openAddProductModal;
@@ -1316,4 +1360,6 @@ window.syncWithCloud = syncWithCloud;
 window.previewImage = previewImage;
 window.previewImageUrl = previewImageUrl;
 window.calculateMargin = calculateMargin;
+window.filterInventoryByStatus = filterInventoryByStatus;
+window.filterByCategory = filterByCategory;
 

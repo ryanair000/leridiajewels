@@ -408,6 +408,16 @@ p, span, label, td, th {
     transition: var(--transition);
 }
 
+.stat-card.clickable {
+    cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+    border-color: var(--gold-primary);
+}
+
 .stat-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
@@ -580,6 +590,15 @@ p, span, label, td, th {
     transition: var(--transition);
 }
 
+.category-item.clickable {
+    cursor: pointer;
+}
+
+.category-item.clickable:hover {
+    background: var(--gold-light);
+    transform: translateX(4px);
+}
+
 .category-item:hover {
     background: var(--gold-light);
 }
@@ -656,6 +675,14 @@ p, span, label, td, th {
     padding: 25px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-gray);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.category-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--gold-primary);
 }
 
 .category-card.large {
