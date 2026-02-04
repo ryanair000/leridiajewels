@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leridia Jewels - Inventory Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h1>Leridia Jewels</h1>
+                <span class="tagline">Inventory Management</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="products">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#" class="nav-item" data-section="categories">
+                    <i class="fas fa-tags"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="#" class="nav-item" data-section="inventory">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="#" class="nav-item" data-section="pricing">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Pricing</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p>&copy; 2026 Leridia Jewels</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search products, categories..." id="searchInput">
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon"><i class="fas fa-bell"></i></button>
+                    <button class="btn-icon"><i class="fas fa-cog"></i></button>
+                    <div class="user-profile">
+                        <div class="avatar">LJ</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <button class="btn-primary" onclick="openAddProductModal()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalProducts">0</h3>
+                            <p>Total Products</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-tags"></i></div>
+                        <div class="stat-info">
+                            <h3 id="totalCategories">6</h3>
+                            <p>Categories</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="lowStock">0</h3>
+                            <p>Low Stock Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="inStock">0</h3>
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card recent-products">
+                        <div class="card-header">
+                            <h3>Recent Products</h3>
+                            <a href="#" onclick="showSection('products')">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Stock</th>
+                                        <th>Local Price (KSH)</th>
+                                        <th>Abroad Price (KSH)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentProductsTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card category-overview">
+                        <div class="card-header">
+                            <h3>Category Overview</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="category-list" id="categoryOverview">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="products" class="content-section">
+                <div class="section-header">
+                    <h2>Products</h2>
+                    <button class="btn-primary" onclick="openAddProductModal()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+                
+                <div class="filters-bar">
+                    <select id="filterCategory" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="filterQuality" class="filter-select">
+                        <option value="">All Quality</option>
+                        <option value="Gold plated">Gold plated</option>
+                        <option value="Stainless steel">Stainless steel</option>
+                        <option value="Gemstones">Gemstones</option>
+                        <option value="Silver 925">Silver 925</option>
+                        <option value="Brass">Brass</option>
+                    </select>
+                    <select id="filterSize" class="filter-select">
+                        <option value="">All Sizes</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                    </select>
+                    <select id="filterStock" class="filter-select">
+                        <option value="">All Stock Levels</option>
+                        <option value="in-stock">In Stock</option>
+                        <option value="low-stock">Low Stock</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table full-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Quality</th>
+                                    <th>Stock</th>
+                                    <th>Local Price</th>
+                                    <th>Local Selling</th>
+                                    <th>Abroad Price</th>
+                                    <th>Abroad Selling</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories" class="content-section">
+                <div class="section-header">
+                    <h2>Categories & Types</h2>
+                </div>
+                
+                <div class="categories-grid">
+                    <!-- Earrings -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-star"></i></div>
+                            <h3>Earrings</h3>
+                        </div>
+                        <div class="category-types">
+                            <span class="type-tag">Studs</span>
+                            <span class="type-tag">Hoops</span>
+                            <span class="type-tag">Drop</span>
+                            <span class="type-tag">Huggie</span>
+                            <span class="type-tag">Statement</span>
+                            <span class="type-tag">Fashion</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Necklaces -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-link"></i></div>
+                            <h3>Necklaces</h3>
+                        </div>
+                        <div class="category-types">
+                            <span class="type-tag">Statement</span>
+                            <span class="type-tag">Pendant</span>
+                            <span class="type-tag">Beaded</span>
+                            <span class="type-tag">Layered</span>
+                            <span class="type-tag">Choker (14–16 in)</span>
+                            <span class="type-tag">Collar</span>
+                            <span class="type-tag">Princess (18 in)</span>
+                            <span class="type-tag">Matinee (20–24 in)</span>
+                            <span class="type-tag">Opera (28–36 in)</span>
+                            <span class="type-tag">Rope / Lariat (36+ in)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Rings -->
+                    <div class="category-card large">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-ring"></i></div>
+                            <h3>Rings</h3>
+                        </div>
+                        <div class="subcategory">
+                            <h4>By Purpose / Use</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Fashion rings</span>
+                                <span class="type-tag">Promise rings</span>
+                                <span class="type-tag">Signet rings</span>
+                                <span class="type-tag">Cocktail rings</span>
+                                <span class="type-tag">Birthstone rings</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>By Design / Style</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Solitaire ring</span>
+                                <span class="type-tag">Halo ring</span>
+                                <span class="type-tag">Cluster ring</span>
+                                <span class="type-tag">Minimalist ring</span>
+                                <span class="type-tag">Vintage / Antique ring</span>
+                                <span class="type-tag">Geometric ring</span>
+                                <span class="type-tag">Adjustable ring</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Men's Rings</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Men's signet ring</span>
+                                <span class="type-tag">Statement men's ring</span>
+                                <span class="type-tag">Band rings</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bracelets/Bangles -->
+                    <div class="category-card large">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-circle-notch"></i></div>
+                            <h3>Bracelets / Bangles</h3>
+                        </div>
+                        <div class="subcategory">
+                            <h4>By Structure / Fit</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Bangle bracelets</span>
+                                <span class="type-tag">Cuff bracelets</span>
+                                <span class="type-tag">Chain bracelets</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Cuff & Bangle Styles</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Plain metal bangle</span>
+                                <span class="type-tag">Textured bangle</span>
+                                <span class="type-tag">Stacked bangles</span>
+                                <span class="type-tag">Open cuff bracelet</span>
+                                <span class="type-tag">Statement cuff bracelet</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Statement Bracelets</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Chunky bracelet</span>
+                                <span class="type-tag">Sculptural bracelet</span>
+                                <span class="type-tag">Wide cuff bracelet</span>
+                                <span class="type-tag">Multi-layer bracelet</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Men's Bracelets</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Leather men's bracelet</span>
+                                <span class="type-tag">Chain men's bracelet</span>
+                                <span class="type-tag">Beaded men's bracelet</span>
+                                <span class="type-tag">Cuff men's bracelet</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Specialty Bracelets</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Tennis bracelet</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>By Structure / Shape</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Rigid bangles</span>
+                                <span class="type-tag">Open bangles</span>
+                                <span class="type-tag">Hinged bangles</span>
+                                <span class="type-tag">Adjustable bangles</span>
+                                <span class="type-tag">Cuff-style bangles</span>
+                                <span class="type-tag">Oval bangles</span>
+                                <span class="type-tag">Flat bangles</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>By Design / Style</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Plain / minimalist bangles</span>
+                                <span class="type-tag">Textured bangles</span>
+                                <span class="type-tag">Twisted / rope bangles</span>
+                                <span class="type-tag">Stackable bangles</span>
+                                <span class="type-tag">Statement bangles</span>
+                                <span class="type-tag">Chunky bangles</span>
+                                <span class="type-tag">Slim bangles</span>
+                                <span class="type-tag">Geometric bangles</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anklets -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-ankh"></i></div>
+                            <h3>Anklets</h3>
+                        </div>
+                        <div class="category-types">
+                            <span class="type-tag">Chain anklet</span>
+                            <span class="type-tag">Beaded anklet</span>
+                            <span class="type-tag">Charm anklet</span>
+                            <span class="type-tag">Layered anklet</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Accessories -->
+                    <div class="category-card large">
+                        <div class="category-header">
+                            <div class="category-icon"><i class="fas fa-gift"></i></div>
+                            <h3>Accessories</h3>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Hair Accessories / Hair Pins</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Hair pins</span>
+                                <span class="type-tag">Hair clips</span>
+                                <span class="type-tag">Hair combs</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Charms & Pendants</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Bag charms</span>
+                                <span class="type-tag">Keychain charms</span>
+                                <span class="type-tag">Phone charms</span>
+                                <span class="type-tag">Bracelet/necklace add-on charms</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Gift Boxes & Packaging</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Ring boxes</span>
+                                <span class="type-tag">Earring boxes</span>
+                                <span class="type-tag">Necklace boxes</span>
+                                <span class="type-tag">Bracelet/bangle boxes</span>
+                                <span class="type-tag">Multi-slot jewelry boxes</span>
+                                <span class="type-tag">Travel jewelry cases</span>
+                            </div>
+                        </div>
+                        <div class="subcategory">
+                            <h4>Decorative Packaging Extras</h4>
+                            <div class="category-types">
+                                <span class="type-tag">Gift bags</span>
+                                <span class="type-tag">Satin pouches</span>
+                                <span class="type-tag">Thank-you cards</span>
+                                <span class="type-tag">Branded stickers/tags</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inventory Section -->
+            <section id="inventory" class="content-section">
+                <div class="section-header">
+                    <h2>Inventory Management</h2>
+                    <button class="btn-secondary" onclick="exportInventory()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+                
+                <div class="inventory-summary">
+                    <div class="inventory-card in-stock">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4 id="invInStock">0</h4>
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                    <div class="inventory-card low-stock">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <h4 id="invLowStock">0</h4>
+                            <p>Low Stock (≤10)</p>
+                        </div>
+                    </div>
+                    <div class="inventory-card out-of-stock">
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <h4 id="invOutStock">0</h4>
+                            <p>Out of Stock</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table full-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>SKU</th>
+                                    <th>Category</th>
+                                    <th>Current Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing Section -->
+            <section id="pricing" class="content-section">
+                <div class="section-header">
+                    <h2>Pricing Management</h2>
+                </div>
+                
+                <div class="pricing-info">
+                    <div class="info-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h4>Local Pricing</h4>
+                        <p>Prices for domestic customers</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-globe"></i>
+                        <h4>Abroad Pricing</h4>
+                        <p>International customer prices</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table full-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Local Cost</th>
+                                    <th>Local Selling</th>
+                                    <th>Local Margin</th>
+                                    <th>Abroad Cost</th>
+                                    <th>Abroad Selling</th>
+                                    <th>Abroad Margin</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pricingTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Product</h3>
+                <button class="btn-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">Product Name *</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productSKU">SKU</label>
+                            <input type="text" id="productSKU" placeholder="Auto-generated if empty">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory">Category *</label>
+                            <select id="productCategory" required onchange="updateTypeOptions()">
+                                <option value="">Select Category</option>
+                                <option value="Earrings">Earrings</option>
+                                <option value="Necklaces">Necklaces</option>
+                                <option value="Rings">Rings</option>
+                                <option value="Bracelets/Bangles">Bracelets / Bangles</option>
+                                <option value="Anklets">Anklets</option>
+                                <option value="Accessories">Accessories</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productType">Type *</label>
+                            <select id="productType" required>
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productSize">Size</label>
+                            <select id="productSize">
+                                <option value="">Select Size</option>
+                                <option value="Small">Small</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Large">Large</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productQuality">Quality *</label>
+                            <select id="productQuality" required>
+                                <option value="">Select Quality</option>
+                                <option value="Gold plated">Gold plated</option>
+                                <option value="Stainless steel">Stainless steel</option>
+                                <option value="Gemstones">Gemstones</option>
+                                <option value="Silver 925">Silver 925</option>
+                                <option value="Brass">Brass</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productStock">Stock Level *</label>
+                        <input type="number" id="productStock" min="0" required>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4><i class="fas fa-map-marker-alt"></i> Local Pricing</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="localPrice">Cost Price *</label>
+                                <input type="number" id="localPrice" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="localSelling">Selling Price *</label>
+                                <input type="number" id="localSelling" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4><i class="fas fa-globe"></i> Abroad Pricing</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="abroadPrice">Cost Price *</label>
+                                <input type="number" id="abroadPrice" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="abroadSelling">Selling Price *</label>
+                                <input type="number" id="abroadSelling" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productDescription">Description</label>
+                        <textarea id="productDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-primary" onclick="saveProduct(event)">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Update Modal -->
+    <div class="modal-overlay" id="stockModal">
+        <div class="modal small">
+            <div class="modal-header">
+                <h3>Update Stock</h3>
+                <button class="btn-close" onclick="closeStockModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="stockForm">
+                    <input type="hidden" id="stockProductId">
+                    <p id="stockProductName" class="stock-product-name"></p>
+                    <div class="form-group">
+                        <label for="newStock">New Stock Level</label>
+                        <input type="number" id="newStock" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeStockModal()">Cancel</button>
+                <button type="submit" class="btn-primary" onclick="updateStock(event)">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
