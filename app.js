@@ -599,10 +599,15 @@ function renderProducts(filteredProducts = null) {
     if (productList.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="13" class="empty-state">
-                    <i class="fas fa-box-open"></i>
+                <td colspan="14" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
                     <h4>No products found</h4>
                     <p>Add your first product to get started</p>
+                    <button class="btn-primary" onclick="openAddProductModal()">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
                 </td>
             </tr>
         `;
@@ -611,17 +616,20 @@ function renderProducts(filteredProducts = null) {
     
     tbody.innerHTML = productList.map(product => `
         <tr>
-            <td><div class="product-image"><img src="${getProductImage(product)}" alt="${product.name}"></div></td>
+            <td class="checkbox-cell">
+                <input type="checkbox" class="product-checkbox" value="${product.id}" 
+                       onchange="toggleProductSelection(this, '${product.id}')">
+            </td>
+            <td><div class="product-image"><img src="${getProductImage(product)}" alt="${product.name}" onclick="openLightbox('${getProductImage(product)}')"></div></td>
             <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.sku}</small></td>
             <td>${product.category}</td>
             <td>${product.type}</td>
-            <td>${product.size || '-'}</td>
-            <td>${product.quality}</td>
-            <td>${product.weightGrams ? product.weightGrams + 'g' : '-'}</td>
+            <td class="column-hideable">${product.quality}</td>
+            <td class="column-hideable">${product.weightGrams ? product.weightGrams + 'g' : '-'}</td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
-            <td class="price">KSH ${product.localPrice.toFixed(2)}</td>
+            <td class="column-hideable price">KSH ${product.localPrice.toFixed(2)}</td>
             <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
-            <td class="price">KSH ${product.abroadPrice.toFixed(2)}</td>
+            <td class="column-hideable price">KSH ${product.abroadPrice.toFixed(2)}</td>
             <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
             <td>
                 <div class="action-buttons">

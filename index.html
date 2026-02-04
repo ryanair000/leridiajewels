@@ -8,13 +8,23 @@
     <script src="config.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="form-styles-addon.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="enhancements.css">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <div class="logo-icon">
                     <i class="fas fa-gem"></i>
@@ -153,54 +163,84 @@
             <section id="products" class="content-section">
                 <div class="section-header">
                     <h2>Products</h2>
-                    <button class="btn-primary" onclick="openAddProductModal()">
-                        <i class="fas fa-plus"></i> Add Product
-                    </button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" onclick="toggleView('table')">
+                                <i class="fas fa-table"></i>
+                            </button>
+                            <button class="view-toggle-btn" onclick="toggleView('grid')">
+                                <i class="fas fa-th"></i>
+                            </button>
+                        </div>
+                        <button class="filter-toggle" onclick="toggleFilterPanel()">
+                            <i class="fas fa-filter"></i> Advanced Filters
+                        </button>
+                        <button class="btn-primary" onclick="openAddProductModal()">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="filters-bar">
-                    <select id="filterCategory" class="filter-select">
-                        <option value="">All Categories</option>
-                    </select>
-                    <select id="filterQuality" class="filter-select">
-                        <option value="">All Quality</option>
-                        <option value="Gold plated">Gold plated</option>
-                        <option value="Stainless steel">Stainless steel</option>
-                        <option value="Gemstones">Gemstones</option>
-                        <option value="Silver 925">Silver 925</option>
-                        <option value="Brass">Brass</option>
-                    </select>
-                    <select id="filterSize" class="filter-select">
-                        <option value="">All Sizes</option>
-                        <option value="Small">Small</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Large">Large</option>
-                    </select>
-                    <select id="filterStock" class="filter-select">
-                        <option value="">All Quantities</option>
-                        <option value="in-stock">In Stock (>10)</option>
-                        <option value="low-stock">Low Quantity (1-10)</option>
-                        <option value="out-of-stock">Out of Stock (0)</option>
-                    </select>
+                <!-- Advanced Filter Panel -->
+                <div class="filter-panel" id="filterPanel">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="filterCategory" class="filter-select">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quality</label>
+                            <select id="filterQuality" class="filter-select">
+                                <option value="">All Quality</option>
+                                <option value="Gold plated">Gold plated</option>
+                                <option value="Stainless steel">Stainless steel</option>
+                                <option value="Gemstones">Gemstones</option>
+                                <option value="Silver 925">Silver 925</option>
+                                <option value="Brass">Brass</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Size</label>
+                            <select id="filterSize" class="filter-select">
+                                <option value="">All Sizes</option>
+                                <option value="Small">Small</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Large">Large</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Status</label>
+                            <select id="filterStock" class="filter-select">
+                                <option value="">All Quantities</option>
+                                <option value="in-stock">In Stock (>10)</option>
+                                <option value="low-stock">Low Quantity (1-10)</option>
+                                <option value="out-of-stock">Out of Stock (0)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="card">
-                    <div class="card-body">
-                        <table class="data-table full-table">
+                    <div class="card-body table-wrapper">
+                        <table class="data-table full-table" id="productsTableView">
                             <thead>
                                 <tr>
+                                    <th class="checkbox-cell">
+                                        <input type="checkbox" id="selectAllProducts" onchange="toggleSelectAll(this)">
+                                    </th>
                                     <th>Image</th>
                                     <th>Product Name</th>
                                     <th>Category</th>
                                     <th>Type</th>
-                                    <th>Size</th>
-                                    <th>Quality</th>
-                                    <th>Weight (g)</th>
+                                    <th class="column-hideable">Quality</th>
+                                    <th class="column-hideable">Weight (g)</th>
                                     <th>Quantity (pcs)</th>
+                                    <th class="column-hideable">Local Cost</th>
                                     <th>Local Price</th>
-                                    <th>Local Selling</th>
+                                    <th class="column-hideable">Abroad Cost</th>
                                     <th>Abroad Price</th>
-                                    <th>Abroad Selling</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -209,6 +249,11 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                
+                <!-- Grid View -->
+                <div class="products-grid-view" id="productsGridView" style="display: none;">
+                    <!-- Populated by JS -->
                 </div>
             </section>
 
@@ -688,6 +733,51 @@
         <span id="toastMessage">Success!</span>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions-bar" id="bulkActionsBar">
+        <span class="bulk-selected-count" id="bulkSelectedCount">0 selected</span>
+        <div class="bulk-actions-buttons">
+            <button class="btn-secondary" onclick="bulkDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            <button class="btn-secondary" onclick="bulkExport()">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button class="btn-secondary" onclick="clearSelection()">
+                <i class="fas fa-times"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div class="lightbox-overlay" id="imageLightbox" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="lightboxImage" src="" alt="Product Image">
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmationDialog" style="display: none;">
+        <div class="sidebar-overlay active" onclick="closeConfirmation()"></div>
+        <div class="confirmation-dialog">
+            <h3 id="confirmTitle">Confirm Action</h3>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="confirmation-dialog-actions">
+                <button class="btn-secondary" onclick="closeConfirmation()">Cancel</button>
+                <button class="btn-primary" id="confirmActionBtn" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
 </body>
 </html>

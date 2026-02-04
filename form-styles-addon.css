@@ -1,11 +1,27 @@
-/* Additional Form Layout Styles */
+/* Additional Form Layout Styles - Horizontal Design */
 
+/* Force 3-column grid layout */
 .form-row-3 {
+    display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 15px !important;
 }
 
+/* Pricing section horizontal layout */
 .form-group-half {
     flex: 1;
+    min-width: 0;
+}
+
+.modal-body .form-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.modal-body .form-row > .form-group-half {
+    flex: 1;
+    min-width: 280px;
 }
 
 .section-label {
@@ -36,4 +52,15 @@
 .form-group select,
 .form-group textarea {
     background: var(--white);
+}
+
+/* Ensure modal is wide enough for horizontal form */
+.modal {
+    max-width: 1000px !important;
+    width: 95vw;
+}
+
+.modal-body {
+    max-height: 80vh;
+    overflow-y: auto;
 }

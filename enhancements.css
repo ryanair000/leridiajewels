@@ -1,0 +1,456 @@
+/* =============================================
+   UI Enhancements & Polish
+   ============================================= */
+
+/* Loading States */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-gray);
+    border-top-color: var(--gold-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--light-gray) 25%, var(--border-gray) 50%, var(--light-gray) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Enhanced Empty States */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px !important;
+}
+
+.empty-state-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    background: var(--light-gray);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state-icon i {
+    font-size: 48px;
+    color: var(--gold-primary);
+}
+
+.empty-state h4 {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+.empty-state .btn-primary {
+    margin-top: 10px;
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 10000;
+    max-width: 400px;
+    width: 90%;
+}
+
+.confirmation-dialog h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.confirmation-dialog p {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+}
+
+.confirmation-dialog-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Bulk Actions Bar */
+.bulk-actions-bar {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--white);
+    padding: 15px 25px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    align-items: center;
+    gap: 20px;
+    border: 2px solid var(--gold-primary);
+}
+
+.bulk-actions-bar.active {
+    display: flex;
+}
+
+.bulk-selected-count {
+    font-weight: 600;
+    color: var(--gold-primary);
+}
+
+.bulk-actions-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Checkbox Styling */
+.checkbox-cell {
+    width: 40px;
+    text-align: center;
+}
+
+.product-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--gold-primary);
+}
+
+/* Image Lightbox */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.lightbox-overlay.active {
+    display: flex;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    position: relative;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: var(--white);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+/* Advanced Filter Panel */
+.filter-panel {
+    background: var(--white);
+    border: 1px solid var(--border-gray);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.filter-panel.active {
+    display: block;
+}
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid var(--border-gray);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.filter-toggle:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Price Range Slider */
+.price-range-wrapper {
+    padding: 10px 0;
+}
+
+.price-range-slider {
+    width: 100%;
+    accent-color: var(--gold-primary);
+}
+
+.price-range-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Table Column Toggle */
+.column-toggle {
+    position: relative;
+}
+
+.column-toggle-btn {
+    background: none;
+    border: 1px solid var(--border-gray);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.column-toggle-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--white);
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: var(--shadow-md);
+    display: none;
+    z-index: 10;
+    min-width: 200px;
+}
+
+.column-toggle-menu.active {
+    display: block;
+}
+
+.column-toggle-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.column-toggle-option:hover {
+    background: var(--light-gray);
+}
+
+/* Product Card View Toggle */
+.view-toggle {
+    display: flex;
+    gap: 8px;
+    background: var(--light-gray);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.view-toggle-btn {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.view-toggle-btn.active {
+    background: var(--white);
+    color: var(--gold-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.products-grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background: var(--white);
+    border: 1px solid var(--border-gray);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.product-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.product-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: var(--light-gray);
+}
+
+.product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-card-content {
+    padding: 15px;
+}
+
+.product-card-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.product-card-details {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.product-card-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-gray);
+}
+
+.product-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: var(--text-primary);
+    color: var(--white);
+    text-align: center;
+    border-radius: 6px;
+    padding: 6px 12px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Status Badges Enhanced */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-badge.success {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+}
+
+.status-badge.warning {
+    background: rgba(255, 152, 0, 0.1);
+    color: var(--warning);
+}
+
+.status-badge.danger {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--danger);
+}
