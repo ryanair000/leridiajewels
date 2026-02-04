@@ -1,5 +1,11 @@
 [build]
   publish = "."
+  command = "echo 'No build required'"
+
+# Inject environment variables into HTML
+[[edge_functions]]
+  path = "/*"
+  function = "inject-env"
 
 [[headers]]
   for = "/*"
