@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS products (
     size VARCHAR(50),
     quality VARCHAR(100) NOT NULL,
     stock INTEGER NOT NULL DEFAULT 0,
+    weight_grams DECIMAL(10, 2),
     local_price DECIMAL(10, 2) NOT NULL,
     local_selling DECIMAL(10, 2) NOT NULL,
     abroad_price DECIMAL(10, 2) NOT NULL,

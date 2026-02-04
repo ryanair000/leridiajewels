@@ -147,6 +147,7 @@ function transformFromDb(record) {
         size: record.size,
         quality: record.quality,
         stock: record.stock,
+        weightGrams: record.weight_grams,
         localPrice: record.local_price,
         localSelling: record.local_selling,
         abroadPrice: record.abroad_price,
@@ -168,6 +169,8 @@ function transformToDb(product) {
         type: product.type,
         size: product.size || null,
         quality: product.quality,
+        stock: product.stock,
+        weight_grams: product.weightGrams || null,
         stock: product.stock,
         local_price: product.localPrice,
         local_selling: product.localSelling,
@@ -346,6 +349,7 @@ function openEditProductModal(productId) {
     document.getElementById('productSize').value = product.size || '';
     document.getElementById('productQuality').value = product.quality;
     document.getElementById('productStock').value = product.stock;
+    document.getElementById('productWeight').value = product.weightGrams || '';
     document.getElementById('localPrice').value = product.localPrice;
     document.getElementById('localSelling').value = product.localSelling;
     document.getElementById('abroadPrice').value = product.abroadPrice;
@@ -403,11 +407,12 @@ async function saveProduct(e) {
         type: type,
         size: document.getElementById('productSize').value,
         quality: document.getElementById('productQuality').value,
-        stock: parseInt(document.getElementById('productStock').value),
-        localPrice: parseFloat(document.getElementById('localPrice').value),
-        localSelling: parseFloat(document.getElementById('localSelling').value),
-        abroadPrice: parseFloat(document.getElementById('abroadPrice').value),
-        abroadSelling: parseFloat(document.getElementById('abroadSelling').value),
+        stock: parseInt(document.getElementById('productStock').value) || 0,
+        weightGrams: parseFloat(document.getElementById('productWeight').value) || null,
+        localPrice: parseFloat(document.getElementById('localPrice').value) || 0,
+        localSelling: parseFloat(document.getElementById('localSelling').value) || 0,
+        abroadPrice: parseFloat(document.getElementById('abroadPrice').value) || 0,
+        abroadSelling: parseFloat(document.getElementById('abroadSelling').value) || 0,
         description: document.getElementById('productDescription').value,
         imageUrl: document.getElementById('productImageUrl').value || null,
         imagePath: imagePath,
@@ -594,7 +599,7 @@ function renderProducts(filteredProducts = null) {
     if (productList.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="12" class="empty-state">
+                <td colspan="13" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <h4>No products found</h4>
                     <p>Add your first product to get started</p>
@@ -612,6 +617,7 @@ function renderProducts(filteredProducts = null) {
             <td>${product.type}</td>
             <td>${product.size || '-'}</td>
             <td>${product.quality}</td>
+            <td>${product.weightGrams ? product.weightGrams + 'g' : '-'}</td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
             <td class="price">KSH ${product.localPrice.toFixed(2)}</td>
             <td class="price">KSH ${product.localSelling.toFixed(2)}</td>

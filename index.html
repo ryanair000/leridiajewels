@@ -194,6 +194,7 @@
                                     <th>Type</th>
                                     <th>Size</th>
                                     <th>Quality</th>
+                                    <th>Weight (g)</th>
                                     <th>Stock</th>
                                     <th>Local Price</th>
                                     <th>Local Selling</th>
@@ -539,8 +540,8 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="productName">Product Name *</label>
-                            <input type="text" id="productName" required>
+                            <label for="productName">Product Name</label>
+                            <input type="text" id="productName">
                         </div>
                         <div class="form-group">
                             <label for="productSKU">SKU</label>
@@ -550,8 +551,8 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="productCategory">Category *</label>
-                            <select id="productCategory" required onchange="updateTypeOptions()">
+                            <label for="productCategory">Category</label>
+                            <select id="productCategory" onchange="updateTypeOptions()">
                                 <option value="">Select Category</option>
                                 <option value="Earrings">Earrings</option>
                                 <option value="Necklaces">Necklaces</option>
@@ -592,21 +593,27 @@
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="productStock">Stock Level *</label>
-                        <input type="number" id="productStock" min="0" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productStock">Stock Level</label>
+                            <input type="number" id="productStock" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="productWeight">Weight (grams)</label>
+                            <input type="number" id="productWeight" step="0.01" min="0" placeholder="Optional">
+                        </div>
                     </div>
                     
                     <div class="form-section">
                         <h4><i class="fas fa-map-marker-alt"></i> Local Pricing</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="localPrice">Cost Price *</label>
-                                <input type="number" id="localPrice" step="0.01" min="0" required>
+                                <label for="localPrice">Cost Price (KSH)</label>
+                                <input type="number" id="localPrice" step="0.01" min="0" value="0">
                             </div>
                             <div class="form-group">
-                                <label for="localSelling">Selling Price *</label>
-                                <input type="number" id="localSelling" step="0.01" min="0" required>
+                                <label for="localSelling">Selling Price (KSH)</label>
+                                <input type="number" id="localSelling" step="0.01" min="0" value="0">
                             </div>
                         </div>
                     </div>
@@ -615,12 +622,12 @@
                         <h4><i class="fas fa-globe"></i> Abroad Pricing</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="abroadPrice">Cost Price *</label>
-                                <input type="number" id="abroadPrice" step="0.01" min="0" required>
+                                <label for="abroadPrice">Cost Price (KSH)</label>
+                                <input type="number" id="abroadPrice" step="0.01" min="0" value="0">
                             </div>
                             <div class="form-group">
-                                <label for="abroadSelling">Selling Price *</label>
-                                <input type="number" id="abroadSelling" step="0.01" min="0" required>
+                                <label for="abroadSelling">Selling Price (KSH)</label>
+                                <input type="number" id="abroadSelling" step="0.01" min="0" value="0">
                             </div>
                         </div>
                     </div>
