@@ -10,6 +10,8 @@ A modern, elegant inventory management system for Leridia Jewels with a beautifu
 - **Inventory Tracking** - Stock level monitoring with low stock alerts
 - **Dual Pricing** - Local (KSH) and international pricing with profit margins
 - **Export** - Export inventory to CSV
+- **Cloud Sync** - Supabase integration for cloud storage
+- **Offline Support** - Falls back to localStorage when offline
 
 ## Categories
 
@@ -30,14 +32,27 @@ A modern, elegant inventory management system for Leridia Jewels with a beautifu
 
 ## Setup
 
+### Local Development
 Simply open `index.html` in a web browser. Data is stored in localStorage.
+
+### Supabase Setup
+1. Go to your Supabase project dashboard
+2. Navigate to SQL Editor
+3. Run the contents of `supabase-schema.sql`
+4. The app will automatically connect and sync
+
+### Netlify Deployment
+1. Connect your GitHub repository to Netlify
+2. Deploy - no build configuration needed
+3. Your site will be live!
 
 ## Tech Stack
 
 - HTML5
 - CSS3 (Modern design with gold accents)
 - Vanilla JavaScript
-- LocalStorage for data persistence
+- Supabase (PostgreSQL database)
+- Netlify (Hosting)
 
 ## License
 

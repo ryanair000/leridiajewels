@@ -220,6 +220,29 @@ h1, h2, h3, h4 {
     color: var(--gold-primary);
 }
 
+/* Connection Status */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--light-gray);
+    color: var(--text-muted);
+}
+
+.connection-status.online {
+    background: #E8F5E9;
+    color: var(--success);
+}
+
+.connection-status.offline {
+    background: #FFF3E0;
+    color: var(--warning);
+}
+
 .user-profile {
     display: flex;
     align-items: center;

@@ -1,6 +1,6 @@
 /* =============================================
    Leridia Jewels - Inventory Management System
-   JavaScript Application Logic
+   JavaScript Application Logic with Supabase
    ============================================= */
 
 // Product Types by Category
@@ -50,8 +50,14 @@ const categoryIcons = {
     'Accessories': 'fa-gift'
 };
 
-// Initialize products from localStorage or empty array
-let products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+// Products array
+let products = [];
+
+// Supabase client reference
+let db = null;
+
+// Connection status
+let isOnline = false;
 
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -59,15 +65,167 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Initialize Application
-function initializeApp() {
+async function initializeApp() {
+    // Initialize Supabase
+    if (window.initSupabase && window.initSupabase()) {
+        db = window.getSupabase();
+        isOnline = true;
+        console.log('Connected to Supabase');
+    } else {
+        console.log('Running in offline mode (localStorage)');
+        isOnline = false;
+    }
+    
     setupNavigation();
     setupFilters();
     populateCategoryFilter();
+    setupSearch();
+    
+    // Load products from Supabase or localStorage
+    await loadProducts();
+    
     updateDashboard();
     renderProducts();
     renderInventory();
     renderPricing();
-    setupSearch();
+    
+    // Update connection status indicator
+    updateConnectionStatus();
+}
+
+// Update Connection Status UI
+function updateConnectionStatus() {
+    const statusIndicator = document.querySelector('.connection-status');
+    if (statusIndicator) {
+        if (isOnline) {
+            statusIndicator.innerHTML = '<i class="fas fa-cloud"></i> Cloud Sync';
+            statusIndicator.classList.add('online');
+            statusIndicator.classList.remove('offline');
+        } else {
+            statusIndicator.innerHTML = '<i class="fas fa-database"></i> Local Storage';
+            statusIndicator.classList.add('offline');
+            statusIndicator.classList.remove('online');
+        }
+    }
+}
+
+// Load Products from Supabase or localStorage
+async function loadProducts() {
+    if (isOnline && db) {
+        try {
+            const { data, error } = await db
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Supabase error:', error);
+                // Fallback to localStorage
+                products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+            } else {
+                products = data.map(transformFromDb) || [];
+                // Also save to localStorage as backup
+                localStorage.setItem('leridiaProducts', JSON.stringify(products));
+            }
+        } catch (err) {
+            console.error('Failed to load from Supabase:', err);
+            products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+        }
+    } else {
+        products = JSON.parse(localStorage.getItem('leridiaProducts')) || [];
+    }
+}
+
+// Transform database record to app format
+function transformFromDb(record) {
+    return {
+        id: record.id,
+        name: record.name,
+        sku: record.sku,
+        category: record.category,
+        type: record.type,
+        size: record.size,
+        quality: record.quality,
+        stock: record.stock,
+        localPrice: record.local_price,
+        localSelling: record.local_selling,
+        abroadPrice: record.abroad_price,
+        abroadSelling: record.abroad_selling,
+        description: record.description,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at
+    };
+}
+
+// Transform app format to database record
+function transformToDb(product) {
+    return {
+        name: product.name,
+        sku: product.sku,
+        category: product.category,
+        type: product.type,
+        size: product.size || null,
+        quality: product.quality,
+        stock: product.stock,
+        local_price: product.localPrice,
+        local_selling: product.localSelling,
+        abroad_price: product.abroadPrice,
+        abroad_selling: product.abroadSelling,
+        description: product.description || null
+    };
+}
+
+// Save Product to Supabase
+async function saveToSupabase(product, isUpdate = false) {
+    if (!isOnline || !db) return false;
+    
+    try {
+        const dbRecord = transformToDb(product);
+        
+        if (isUpdate) {
+            const { error } = await db
+                .from('products')
+                .update(dbRecord)
+                .eq('id', product.id);
+            
+            if (error) throw error;
+        } else {
+            const { data, error } = await db
+                .from('products')
+                .insert(dbRecord)
+                .select()
+                .single();
+            
+            if (error) throw error;
+            
+            // Update product with database-generated ID
+            if (data) {
+                product.id = data.id;
+            }
+        }
+        return true;
+    } catch (err) {
+        console.error('Supabase save error:', err);
+        return false;
+    }
+}
+
+// Delete from Supabase
+async function deleteFromSupabase(productId) {
+    if (!isOnline || !db) return false;
+    
+    try {
+        const { error } = await db
+            .from('products')
+            .delete()
+            .eq('id', productId);
+        
+        if (error) throw error;
+        return true;
+    } catch (err) {
+        console.error('Supabase delete error:', err);
+        return false;
+    }
 }
 
 // Navigation Setup
@@ -168,7 +326,7 @@ function openAddProductModal() {
 
 // Open Edit Product Modal
 function openEditProductModal(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (!product) return;
     
     document.getElementById('modalTitle').textContent = 'Edit Product';
@@ -199,7 +357,7 @@ function closeModal() {
 }
 
 // Save Product
-function saveProduct(e) {
+async function saveProduct(e) {
     e.preventDefault();
     
     const form = document.getElementById('productForm');
@@ -213,7 +371,7 @@ function saveProduct(e) {
     const type = document.getElementById('productType').value;
     
     const productData = {
-        id: productId || Date.now().toString(),
+        id: productId || null,
         name: document.getElementById('productName').value,
         sku: document.getElementById('productSKU').value || generateSKU(category, type),
         category: category,
@@ -226,21 +384,33 @@ function saveProduct(e) {
         abroadPrice: parseFloat(document.getElementById('abroadPrice').value),
         abroadSelling: parseFloat(document.getElementById('abroadSelling').value),
         description: document.getElementById('productDescription').value,
-        createdAt: productId ? products.find(p => p.id === productId)?.createdAt : new Date().toISOString(),
+        createdAt: productId ? products.find(p => p.id == productId)?.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
     
+    // Show loading state
+    showToast('Saving product...');
+    
     if (productId) {
         // Update existing product
-        const index = products.findIndex(p => p.id === productId);
+        productData.id = productId;
+        const savedToCloud = await saveToSupabase(productData, true);
+        
+        const index = products.findIndex(p => p.id == productId);
         if (index !== -1) {
             products[index] = productData;
         }
-        showToast('Product updated successfully!');
+        showToast(savedToCloud ? 'Product updated & synced!' : 'Product updated locally!');
     } else {
         // Add new product
+        const savedToCloud = await saveToSupabase(productData, false);
+        
+        if (!savedToCloud && !productData.id) {
+            productData.id = Date.now().toString();
+        }
+        
         products.unshift(productData);
-        showToast('Product added successfully!');
+        showToast(savedToCloud ? 'Product added & synced!' : 'Product added locally!');
     }
     
     saveToLocalStorage();
@@ -252,9 +422,12 @@ function saveProduct(e) {
 }
 
 // Delete Product
-function deleteProduct(productId) {
+async function deleteProduct(productId) {
     if (confirm('Are you sure you want to delete this product?')) {
-        products = products.filter(p => p.id !== productId);
+        // Delete from Supabase
+        await deleteFromSupabase(productId);
+        
+        products = products.filter(p => p.id != productId);
         saveToLocalStorage();
         updateDashboard();
         renderProducts();
@@ -266,7 +439,7 @@ function deleteProduct(productId) {
 
 // Open Stock Modal
 function openStockModal(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (!product) return;
     
     document.getElementById('stockProductId').value = product.id;
@@ -281,16 +454,20 @@ function closeStockModal() {
 }
 
 // Update Stock
-function updateStock(e) {
+async function updateStock(e) {
     e.preventDefault();
     
     const productId = document.getElementById('stockProductId').value;
     const newStock = parseInt(document.getElementById('newStock').value);
     
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (product) {
         product.stock = newStock;
         product.updatedAt = new Date().toISOString();
+        
+        // Update in Supabase
+        await saveToSupabase(product, true);
+        
         saveToLocalStorage();
         updateDashboard();
         renderProducts();
@@ -301,7 +478,7 @@ function updateStock(e) {
     closeStockModal();
 }
 
-// Save to Local Storage
+// Save to Local Storage (backup)
 function saveToLocalStorage() {
     localStorage.setItem('leridiaProducts', JSON.stringify(products));
 }
@@ -579,7 +756,7 @@ function exportInventory() {
         return;
     }
     
-    const headers = ['Name', 'SKU', 'Category', 'Type', 'Size', 'Quality', 'Stock', 'Local Price', 'Local Selling', 'Abroad Price', 'Abroad Selling'];
+    const headers = ['Name', 'SKU', 'Category', 'Type', 'Size', 'Quality', 'Stock', 'Local Price (KSH)', 'Local Selling (KSH)', 'Abroad Price (KSH)', 'Abroad Selling (KSH)'];
     const csvContent = [
         headers.join(','),
         ...products.map(p => [
@@ -611,116 +788,20 @@ function exportInventory() {
     showToast('Inventory exported successfully!');
 }
 
-// Add sample products for demo
-function addSampleProducts() {
-    const sampleProducts = [
-        {
-            id: '1',
-            name: 'Golden Rose Stud Earrings',
-            sku: 'LJ-EAST-0001',
-            category: 'Earrings',
-            type: 'Studs',
-            size: 'Small',
-            quality: 'Gold plated',
-            stock: 25,
-            localPrice: 15.00,
-            localSelling: 29.99,
-            abroadPrice: 18.00,
-            abroadSelling: 39.99,
-            description: 'Elegant rose design stud earrings',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        },
-        {
-            id: '2',
-            name: 'Pearl Drop Necklace',
-            sku: 'LJ-NEST-0002',
-            category: 'Necklaces',
-            type: 'Pendant',
-            size: 'Medium',
-            quality: 'Silver 925',
-            stock: 8,
-            localPrice: 45.00,
-            localSelling: 89.99,
-            abroadPrice: 55.00,
-            abroadSelling: 119.99,
-            description: 'Beautiful pearl pendant necklace',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        },
-        {
-            id: '3',
-            name: 'Minimalist Band Ring',
-            sku: 'LJ-RIMI-0003',
-            category: 'Rings',
-            type: 'Minimalist ring',
-            size: 'Small',
-            quality: 'Stainless steel',
-            stock: 0,
-            localPrice: 12.00,
-            localSelling: 24.99,
-            abroadPrice: 15.00,
-            abroadSelling: 34.99,
-            description: 'Simple and elegant minimalist ring',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        },
-        {
-            id: '4',
-            name: 'Twisted Rope Bangle',
-            sku: 'LJ-BRBA-0004',
-            category: 'Bracelets/Bangles',
-            type: 'Twisted / rope bangles',
-            size: 'Large',
-            quality: 'Gold plated',
-            stock: 15,
-            localPrice: 28.00,
-            localSelling: 54.99,
-            abroadPrice: 35.00,
-            abroadSelling: 74.99,
-            description: 'Beautiful twisted rope design bangle',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        },
-        {
-            id: '5',
-            name: 'Crystal Charm Anklet',
-            sku: 'LJ-ANCH-0005',
-            category: 'Anklets',
-            type: 'Charm anklet',
-            size: 'Medium',
-            quality: 'Gemstones',
-            stock: 12,
-            localPrice: 22.00,
-            localSelling: 44.99,
-            abroadPrice: 28.00,
-            abroadSelling: 59.99,
-            description: 'Sparkling crystal charm anklet',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }
-    ];
+// Sync with Supabase (manual sync)
+async function syncWithCloud() {
+    if (!isOnline || !db) {
+        showToast('Not connected to cloud');
+        return;
+    }
     
-    products = sampleProducts;
-    saveToLocalStorage();
+    showToast('Syncing with cloud...');
+    await loadProducts();
     updateDashboard();
     renderProducts();
     renderInventory();
     renderPricing();
-    showToast('Sample products added!');
-}
-
-// Clear all products (for testing)
-function clearAllProducts() {
-    if (confirm('Are you sure you want to delete ALL products? This cannot be undone.')) {
-        products = [];
-        saveToLocalStorage();
-        updateDashboard();
-        renderProducts();
-        renderInventory();
-        renderPricing();
-        showToast('All products cleared!');
-    }
+    showToast('Sync complete!');
 }
 
 // Expose functions to window for HTML onclick handlers
@@ -735,5 +816,4 @@ window.closeStockModal = closeStockModal;
 window.updateStock = updateStock;
 window.updateTypeOptions = updateTypeOptions;
 window.exportInventory = exportInventory;
-window.addSampleProducts = addSampleProducts;
-window.clearAllProducts = clearAllProducts;
+window.syncWithCloud = syncWithCloud;
