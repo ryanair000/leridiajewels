@@ -79,12 +79,28 @@ async function initializeApp() {
     // Initialize Supabase
     if (window.initSupabase && window.initSupabase()) {
         db = window.getSupabase();
-        isOnline = true;
-        console.log('Connected to Supabase');
+        
+        // Test the connection
+        try {
+            const { error } = await db.from('products').select('id').limit(1);
+            if (error) {
+                console.error('❌ Supabase connection test failed:', error);
+                isOnline = false;
+                showToast('📱 Working offline - Cloud sync unavailable', 'warning');
+            } else {
+                isOnline = true;
+                console.log('✅ Connected to Supabase successfully');
+            }
+        } catch (err) {
+            console.error('❌ Supabase connection error:', err);
+            isOnline = false;
+            showToast('📱 Working offline - Cloud sync unavailable', 'warning');
+        }
     } else {
-        console.error('Failed to connect to Supabase');
-        alert('Failed to connect to database. Please check your connection and refresh.');
-        return;
+        console.warn('⚠️ Supabase not available - running in offline mode');
+        isOnline = false;
+        db = null;
+        showToast('📱 Working offline - data saved locally', 'info');
     }
     
     setupNavigation();
@@ -214,35 +230,48 @@ function transformToDb(product) {
 
 // Save Product to Supabase
 async function saveToSupabase(product, isUpdate = false) {
-    if (!isOnline || !db) return false;
+    if (!isOnline || !db) {
+        console.log('💾 Saving offline - Supabase not available');
+        return false;
+    }
     
     try {
         const dbRecord = transformToDb(product);
         
         if (isUpdate) {
+            console.log('Updating product in Supabase:', product.id);
             const { error } = await db
                 .from('products')
                 .update(dbRecord)
                 .eq('id', product.id);
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase update error:', error);
+                throw error;
+            }
+            console.log('✅ Product updated in Supabase');
         } else {
+            console.log('Inserting new product to Supabase');
             const { data, error } = await db
                 .from('products')
                 .insert(dbRecord)
                 .select()
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase insert error:', error);
+                throw error;
+            }
             
             // Update product with database-generated ID
             if (data) {
                 product.id = data.id;
+                console.log('✅ Product inserted to Supabase with ID:', product.id);
             }
         }
         return true;
     } catch (err) {
-        console.error('Supabase save error:', err);
+        console.error('❌ Supabase save failed:', err.message || err);
         return false;
     }
 }
@@ -1135,18 +1164,40 @@ function exportInventory() {
 
 // Sync with Supabase (manual sync)
 async function syncWithCloud() {
-    if (!isOnline || !db) {
-        showToast('Not connected to cloud');
+    if (!db) {
+        showToast('❌ Cloud sync unavailable - Supabase not configured', 'error');
+        console.error('Supabase client not initialized');
         return;
     }
     
-    showToast('Syncing with cloud...');
-    await loadProducts();
-    updateDashboard();
-    renderProducts();
-    renderInventory();
-    renderPricing();
-    showToast('Sync complete!');
+    showToast('🔄 Testing cloud connection...', 'info');
+    
+    // Test connection
+    try {
+        const { error } = await db.from('products').select('id').limit(1);
+        if (error) {
+            isOnline = false;
+            showToast('❌ Cloud sync failed: ' + error.message, 'error');
+            console.error('Connection test failed:', error);
+            return;
+        }
+        
+        isOnline = true;
+        showToast('☁️ Syncing with cloud...', 'info');
+        
+        await loadProducts();
+        updateDashboard();
+        renderProducts();
+        renderInventory();
+        renderPricing();
+        
+        showToast('✅ Sync complete! Connected to cloud', 'success');
+        console.log('✅ Cloud sync successful');
+    } catch (err) {
+        isOnline = false;
+        showToast('❌ Sync failed: ' + err.message, 'error');
+        console.error('Sync error:', err);
+    }
 }
 
 // Convert file to base64
