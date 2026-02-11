@@ -129,29 +129,36 @@ function updateConnectionStatus() {
 
 // Load Products from Supabase
 async function loadProducts() {
-    if (!isOnline || !db) {
-        console.error('No database connection');
-        return;
-    }
-    
-    try {
-        const { data, error } = await db
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error('Supabase error:', error);
-            showToast('Error loading products: ' + error.message);
-            products = [];
-        } else {
-            products = data.map(transformFromDb) || [];
-            console.log(`Loaded ${products.length} products from Supabase`);
+    // Try loading from Supabase first
+    if (isOnline && db) {
+        try {
+            const { data, error } = await db
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Supabase error:', error);
+                showToast('⚠️ Loading from local storage', 'warning');
+                products = loadFromLocalStorage('products');
+            } else {
+                products = data.map(transformFromDb) || [];
+                console.log(`Loaded ${products.length} products from Supabase`);
+                // Save to localStorage as backup
+                saveToLocalStorage('products', products);
+            }
+        } catch (err) {
+            console.error('Failed to load from Supabase:', err);
+            showToast('⚠️ Loading from local storage', 'warning');
+            products = loadFromLocalStorage('products');
         }
-    } catch (err) {
-        console.error('Failed to load from Supabase:', err);
-        showToast('Failed to load products');
-        products = [];
+    } else {
+        // Load from localStorage when offline
+        console.log('Loading products from localStorage (offline mode)');
+        products = loadFromLocalStorage('products');
+        if (products.length > 0) {
+            showToast('📱 Working offline - products loaded from local storage', 'info');
+        }
     }
 }
 
@@ -639,10 +646,13 @@ async function saveProduct(e) {
             products[index] = productData;
         }
         
+        // Save to localStorage
+        saveToLocalStorage('products', products);
+        
         if (savedToCloud) {
             showToast('✅ Product updated successfully!', 'success');
         } else {
-            showToast('⚠️ Product updated but sync failed', 'warning');
+            showToast('✅ Product updated locally!', 'success');
         }
     } else {
         // Add new product
@@ -654,10 +664,13 @@ async function saveProduct(e) {
         
         products.unshift(productData);
         
+        // Save to localStorage
+        saveToLocalStorage('products', products);
+        
         if (savedToCloud) {
             showToast('✅ Product added successfully!', 'success');
         } else {
-            showToast('⚠️ Product added but sync failed', 'warning');
+            showToast('✅ Product added locally!', 'success');
         }
         
         // Reset form for next product
@@ -694,11 +707,15 @@ async function deleteProduct(productId) {
         const deleted = await deleteFromSupabase(productId);
         
         products = products.filter(p => p.id != productId);
+        
+        // Save to localStorage
+        saveToLocalStorage('products', products);
+        
         updateDashboard();
         renderProducts();
         renderInventory();
         renderPricing();
-        showToast('Product deleted successfully!');
+        showToast('✅ Product deleted successfully!', 'success');
     }
 }
 
@@ -733,10 +750,13 @@ async function updateStock(e) {
         // Update in Supabase
         await saveToSupabase(product, true);
         
+        // Save to localStorage
+        saveToLocalStorage('products', products);
+        
         updateDashboard();
         renderProducts();
         renderInventory();
-        showToast('Stock updated successfully!');
+        showToast('✅ Stock updated successfully!', 'success');
     }
     
     closeStockModal();
