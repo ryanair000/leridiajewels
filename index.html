@@ -297,12 +297,12 @@
                 
                 <div class="categories-grid">
                     <!-- Earrings -->
-                    <div class="category-card">
+                    <div class="category-card" onclick="filterByCategory('Earrings')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-star"></i></div>
                             <div>
                                 <h3>Earrings <span class="category-id">EARR-001</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Earrings')" title="Add Earrings Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Earrings')" title="Add Earrings Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -318,12 +318,12 @@
                     </div>
                     
                     <!-- Necklaces -->
-                    <div class="category-card">
+                    <div class="category-card" onclick="filterByCategory('Necklaces')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-link"></i></div>
                             <div>
                                 <h3>Necklaces <span class="category-id">NECK-002</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Necklaces')" title="Add Necklaces Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Necklaces')" title="Add Necklaces Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -343,12 +343,12 @@
                     </div>
                     
                     <!-- Rings -->
-                    <div class="category-card large">
+                    <div class="category-card large" onclick="filterByCategory('Rings')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-ring"></i></div>
                             <div>
                                 <h3>Rings <span class="category-id">RING-003</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Rings')" title="Add Rings Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Rings')" title="Add Rings Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -386,12 +386,12 @@
                     </div>
                     
                     <!-- Bracelets/Bangles -->
-                    <div class="category-card large">
+                    <div class="category-card large" onclick="filterByCategory('Bracelets/Bangles')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-circle-notch"></i></div>
                             <div>
                                 <h3>Bracelets / Bangles <span class="category-id">BRAC-004</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Bracelets/Bangles')" title="Add Bracelets/Bangles Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Bracelets/Bangles')" title="Add Bracelets/Bangles Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -466,12 +466,12 @@
                     </div>
                     
                     <!-- Anklets -->
-                    <div class="category-card">
+                    <div class="category-card" onclick="filterByCategory('Anklets')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-ankh"></i></div>
                             <div>
                                 <h3>Anklets <span class="category-id">ANKL-005</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Anklets')" title="Add Anklets Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Anklets')" title="Add Anklets Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -485,12 +485,12 @@
                     </div>
                     
                     <!-- Accessories -->
-                    <div class="category-card">
+                    <div class="category-card" onclick="filterByCategory('Accessories')">
                         <div class="category-header">
                             <div class="category-icon"><i class="fas fa-gift"></i></div>
                             <div>
                                 <h3>Accessories <span class="category-id">ACCS-006</span></h3>
-                                <button class="btn-add-category" onclick="openAddProductModalWithCategory('Accessories')" title="Add Accessories Product">
+                                <button class="btn-add-category" onclick="event.stopPropagation(); openAddProductModalWithCategory('Accessories')" title="Add Accessories Product">
                                     <i class="fas fa-plus"></i> Add Product
                                 </button>
                             </div>
@@ -540,9 +540,14 @@
             <section id="inventory" class="content-section">
                 <div class="section-header">
                     <h2>Inventory Management</h2>
-                    <button class="btn-secondary" onclick="exportInventory()">
-                        <i class="fas fa-download"></i> Export
-                    </button>
+                    <div class="header-buttons">
+                        <button class="btn-primary" onclick="openAddProductModal()">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
+                        <button class="btn-secondary" onclick="exportInventory()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="inventory-summary">

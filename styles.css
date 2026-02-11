@@ -398,6 +398,12 @@ p, span, label, td, th {
     letter-spacing: 0.3px;
 }
 
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 /* Buttons */
 .btn-primary {
     background: var(--gold-gradient);
@@ -795,6 +801,7 @@ p, span, label, td, th {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-gray);
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .category-card:hover {
