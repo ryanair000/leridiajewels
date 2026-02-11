@@ -677,7 +677,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="productCategory">Category *</label>
-                            <select id="productCategory" onchange="updateTypeOptions()" required>
+                            <select id="productCategory" onchange="handleCategoryChange()" required>
                                 <option value="">Select Category</option>
                                 <option value="Earrings">Earrings</option>
                                 <option value="Necklaces">Necklaces</option>
@@ -685,14 +685,17 @@
                                 <option value="Bracelets/Bangles">Bracelets / Bangles</option>
                                 <option value="Anklets">Anklets</option>
                                 <option value="Accessories">Accessories</option>
+                                <option value="__custom__">➕ Add Custom Category...</option>
                             </select>
-                            <small class="form-help"><i class="fas fa-info-circle"></i> Choose the main category</small>
+                            <input type="text" id="customCategory" placeholder="Enter new category name" style="display: none; margin-top: 8px;">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Choose or add a custom category</small>
                         </div>
                         <div class="form-group">
                             <label for="productType">Type *</label>
                             <select id="productType" required>
                                 <option value="">Select type after category</option>
                             </select>
+                            <input type="text" id="customType" placeholder="Enter custom type" style="display: none; margin-top: 8px;">
                             <small class="form-help"><i class="fas fa-info-circle"></i> Specific type within category</small>
                         </div>
                     </div>

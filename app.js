@@ -320,12 +320,42 @@ function setupSearch() {
     });
 }
 
+// Handle Category Change (including custom categories)
+function handleCategoryChange() {
+    const categorySelect = document.getElementById('productCategory');
+    const customCategoryInput = document.getElementById('customCategory');
+    const category = categorySelect.value;
+    
+    if (category === '__custom__') {
+        // Show custom category input
+        customCategoryInput.style.display = 'block';
+        customCategoryInput.required = true;
+        customCategoryInput.focus();
+        
+        // Enable custom type option
+        const typeSelect = document.getElementById('productType');
+        const customTypeInput = document.getElementById('customType');
+        typeSelect.innerHTML = '<option value="">Select Type</option><option value="__custom__">➕ Add Custom Type...</option>';
+    } else {
+        // Hide custom category input
+        customCategoryInput.style.display = 'none';
+        customCategoryInput.required = false;
+        customCategoryInput.value = '';
+        
+        // Update type options normally
+        updateTypeOptions();
+    }
+}
+
 // Update Type Options based on Category
 function updateTypeOptions() {
     const category = document.getElementById('productCategory').value;
     const typeSelect = document.getElementById('productType');
+    const customTypeInput = document.getElementById('customType');
     
     typeSelect.innerHTML = '<option value="">Select Type</option>';
+    customTypeInput.style.display = 'none';
+    customTypeInput.required = false;
     
     if (category && productTypes[category]) {
         productTypes[category].forEach(type => {
@@ -334,7 +364,26 @@ function updateTypeOptions() {
             option.textContent = type;
             typeSelect.appendChild(option);
         });
+        
+        // Add custom type option
+        const customOption = document.createElement('option');
+        customOption.value = '__custom__';
+        customOption.textContent = '➕ Add Custom Type...';
+        typeSelect.appendChild(customOption);
     }
+    
+    // Add onchange handler to type select for custom types
+    typeSelect.onchange = function() {
+        if (typeSelect.value === '__custom__') {
+            customTypeInput.style.display = 'block';
+            customTypeInput.required = true;
+            customTypeInput.focus();
+        } else {
+            customTypeInput.style.display = 'none';
+            customTypeInput.required = false;
+            customTypeInput.value = '';
+        }
+    };
 }
 
 // Generate SKU
@@ -351,6 +400,15 @@ function openAddProductModal() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
+    
+    // Reset custom inputs
+    document.getElementById('customCategory').style.display = 'none';
+    document.getElementById('customCategory').required = false;
+    document.getElementById('customCategory').value = '';
+    document.getElementById('customType').style.display = 'none';
+    document.getElementById('customType').required = false;
+    document.getElementById('customType').value = '';
+    
     document.getElementById('productModal').classList.add('active');
 }
 
@@ -363,10 +421,44 @@ function openEditProductModal(productId) {
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.name;
     document.getElementById('productSKU').value = product.sku;
+    
+    // Check if category exists in dropdown, if not add it
+    const categorySelect = document.getElementById('productCategory');
+    const categoryExists = Array.from(categorySelect.options).some(opt => opt.value === product.category);
+    
+    if (!categoryExists && product.category) {
+        const newOption = document.createElement('option');
+        newOption.value = product.category;
+        newOption.textContent = product.category;
+        categorySelect.insertBefore(newOption, categorySelect.options[categorySelect.options.length - 1]);
+        
+        // Add to productTypes if not exists
+        if (!productTypes[product.category]) {
+            productTypes[product.category] = [];
+        }
+    }
+    
     document.getElementById('productCategory').value = product.category;
     
     // Update type options and set value
     updateTypeOptions();
+    
+    // Check if type exists in dropdown, if not add it
+    const typeSelect = document.getElementById('productType');
+    const typeExists = Array.from(typeSelect.options).some(opt => opt.value === product.type);
+    
+    if (!typeExists && product.type) {
+        const newOption = document.createElement('option');
+        newOption.value = product.type;
+        newOption.textContent = product.type;
+        typeSelect.insertBefore(newOption, typeSelect.options[typeSelect.options.length - 1]);
+        
+        // Add to productTypes
+        if (productTypes[product.category] && !productTypes[product.category].includes(product.type)) {
+            productTypes[product.category].push(product.type);
+        }
+    }
+    
     document.getElementById('productType').value = product.type;
     
     document.getElementById('productSize').value = product.size || '';
@@ -405,6 +497,12 @@ function closeModal() {
     document.getElementById('localUrlPreview').innerHTML = '';
     document.getElementById('abroadFilePreview').innerHTML = '';
     document.getElementById('abroadUrlPreview').innerHTML = '';
+    
+    // Reset custom inputs
+    document.getElementById('customCategory').style.display = 'none';
+    document.getElementById('customCategory').required = false;
+    document.getElementById('customType').style.display = 'none';
+    document.getElementById('customType').required = false;
 }
 
 // Save Product
@@ -435,8 +533,48 @@ async function saveProduct(e) {
     }
     
     const productId = document.getElementById('productId').value;
-    const category = document.getElementById('productCategory').value;
-    const type = document.getElementById('productType').value;
+    let category = document.getElementById('productCategory').value;
+    let type = document.getElementById('productType').value;
+    
+    // Handle custom category
+    if (category === '__custom__') {
+        const customCategory = document.getElementById('customCategory').value.trim();
+        if (!customCategory) {
+            showToast('⚠️ Please enter a custom category name', 'warning');
+            return;
+        }
+        category = customCategory;
+        
+        // Add to productTypes if not exists
+        if (!productTypes[category]) {
+            productTypes[category] = [];
+        }
+        
+        // Add category to dropdown for future use
+        const categorySelect = document.getElementById('productCategory');
+        const existingOption = Array.from(categorySelect.options).find(opt => opt.value === category);
+        if (!existingOption) {
+            const newOption = document.createElement('option');
+            newOption.value = category;
+            newOption.textContent = category;
+            categorySelect.insertBefore(newOption, categorySelect.options[categorySelect.options.length - 1]);
+        }
+    }
+    
+    // Handle custom type
+    if (type === '__custom__') {
+        const customType = document.getElementById('customType').value.trim();
+        if (!customType) {
+            showToast('⚠️ Please enter a custom type name', 'warning');
+            return;
+        }
+        type = customType;
+        
+        // Add type to category if not exists
+        if (productTypes[category] && !productTypes[category].includes(type)) {
+            productTypes[category].push(type);
+        }
+    }
     
     // Handle image file uploads and URLs
     const localImageFile = document.getElementById('localImageFile').files[0];
@@ -1637,6 +1775,7 @@ window.openStockModal = openStockModal;
 window.closeStockModal = closeStockModal;
 window.updateStock = updateStock;
 window.updateTypeOptions = updateTypeOptions;
+window.handleCategoryChange = handleCategoryChange;
 window.exportInventory = exportInventory;
 window.syncWithCloud = syncWithCloud;
 window.previewImage = previewImage;
