@@ -412,6 +412,19 @@ function openAddProductModal() {
     document.getElementById('productModal').classList.add('active');
 }
 
+// Open Add Product Modal with Pre-selected Category
+function openAddProductModalWithCategory(category) {
+    openAddProductModal();
+    
+    // Set the category
+    document.getElementById('productCategory').value = category;
+    
+    // Trigger the category change to populate types
+    handleCategoryChange();
+    
+    showToast(`📝 Adding new ${category} product`, 'info');
+}
+
 // Open Edit Product Modal
 function openEditProductModal(productId) {
     const product = products.find(p => p.id == productId);
@@ -1767,6 +1780,7 @@ function loadFromLocalStorage(key) {
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
 window.openAddProductModal = openAddProductModal;
+window.openAddProductModalWithCategory = openAddProductModalWithCategory;
 window.openEditProductModal = openEditProductModal;
 window.closeModal = closeModal;
 window.saveProduct = saveProduct;

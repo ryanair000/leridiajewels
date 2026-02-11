@@ -795,7 +795,6 @@ p, span, label, td, th {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-gray);
     transition: var(--transition);
-    cursor: pointer;
 }
 
 .category-card:hover {
@@ -817,6 +816,10 @@ p, span, label, td, th {
     border-bottom: 2px solid var(--gold-light);
 }
 
+.category-header > div {
+    flex: 1;
+}
+
 .category-icon {
     width: 44px;
     height: 44px;
@@ -832,6 +835,41 @@ p, span, label, td, th {
 .category-header h3 {
     font-size: 1.15rem;
     color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.category-id {
+    font-size: 0.75rem;
+    color: var(--gold-primary);
+    font-weight: 600;
+    background: var(--light-gray);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+.btn-add-category {
+    background: var(--gold-gradient);
+    color: var(--white);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-add-category:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-gold);
+}
+
+.btn-add-category i {
+    font-size: 0.75rem;
 }
 
 .subcategory {
