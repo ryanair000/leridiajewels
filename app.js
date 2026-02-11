@@ -145,7 +145,10 @@ function updateConnectionStatus() {
 
 // Load Products from Supabase
 async function loadProducts() {
-    // Try loading from Supabase first
+    // Always load localStorage first as baseline
+    const localProducts = loadFromLocalStorage('products');
+    
+    // Try loading from Supabase
     if (isOnline && db) {
         try {
             const { data, error } = await db
@@ -154,19 +157,55 @@ async function loadProducts() {
                 .order('created_at', { ascending: false });
             
             if (error) {
-                console.error('Supabase error:', error);
+                console.error('Supabase load error:', error);
                 showToast('⚠️ Loading from local storage', 'warning');
-                products = loadFromLocalStorage('products');
+                products = localProducts;
             } else {
-                products = data.map(transformFromDb) || [];
-                console.log(`Loaded ${products.length} products from Supabase`);
-                // Save to localStorage as backup
+                const cloudProducts = data.map(transformFromDb) || [];
+                console.log(`Loaded ${cloudProducts.length} products from Supabase`);
+                console.log(`Loaded ${localProducts.length} products from localStorage`);
+                
+                if (cloudProducts.length > 0) {
+                    // Merge: use cloud as base, add any local-only products
+                    const cloudIds = new Set(cloudProducts.map(p => p.id));
+                    const localOnly = localProducts.filter(p => !cloudIds.has(p.id));
+                    
+                    if (localOnly.length > 0) {
+                        console.log(`Found ${localOnly.length} local-only products, syncing to cloud...`);
+                        // Try to push local-only products to Supabase
+                        for (const prod of localOnly) {
+                            const saved = await saveToSupabase(prod, false);
+                            if (saved) {
+                                cloudProducts.push(prod);
+                                console.log(`✅ Synced local product: ${prod.name}`);
+                            } else {
+                                cloudProducts.push(prod);
+                                console.log(`⚠️ Kept local product: ${prod.name}`);
+                            }
+                        }
+                    }
+                    
+                    products = cloudProducts;
+                } else if (localProducts.length > 0) {
+                    // Cloud is empty but we have local products - keep them
+                    console.log('Cloud empty, using local products');
+                    products = localProducts;
+                    
+                    // Try to sync local products to cloud
+                    for (const prod of localProducts) {
+                        await saveToSupabase(prod, false);
+                    }
+                } else {
+                    products = [];
+                }
+                
+                // Save merged result to localStorage
                 saveToLocalStorage('products', products);
             }
         } catch (err) {
             console.error('Failed to load from Supabase:', err);
             showToast('⚠️ Loading from local storage', 'warning');
-            products = loadFromLocalStorage('products');
+            products = localProducts;
         }
     } else {
         // Load from localStorage when offline
