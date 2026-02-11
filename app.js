@@ -206,7 +206,7 @@ function transformFromDb(record) {
 
 // Transform app format to database record
 function transformToDb(product) {
-    const record = {
+    return {
         name: product.name,
         sku: product.sku,
         category: product.category,
@@ -223,16 +223,6 @@ function transformToDb(product) {
         local_image_url: product.localImageUrl || null,
         abroad_image_url: product.abroadImageUrl || null
     };
-    
-    // Only include image file data if columns exist (may be large base64)
-    if (product.localImageFile) {
-        record.local_image_file = product.localImageFile;
-    }
-    if (product.abroadImageFile) {
-        record.abroad_image_file = product.abroadImageFile;
-    }
-    
-    return record;
 }
 
 // Save Product to Supabase
@@ -244,7 +234,6 @@ async function saveToSupabase(product, isUpdate = false) {
     
     try {
         const dbRecord = transformToDb(product);
-        console.log('DB record fields:', Object.keys(dbRecord));
         
         if (isUpdate) {
             console.log('Updating product in Supabase:', product.id);
@@ -255,17 +244,6 @@ async function saveToSupabase(product, isUpdate = false) {
             
             if (error) {
                 console.error('Supabase update error:', error.message, error.details, error.hint);
-                
-                // If columns don't exist, retry without image file fields
-                if (error.message && error.message.includes('column')) {
-                    console.log('Retrying without image file columns...');
-                    delete dbRecord.local_image_file;
-                    delete dbRecord.abroad_image_file;
-                    const { error: retryError } = await db.from('products').update(dbRecord).eq('id', product.id);
-                    if (retryError) throw retryError;
-                    console.log('✅ Product updated (without image files)');
-                    return true;
-                }
                 throw error;
             }
             console.log('✅ Product updated in Supabase');
@@ -279,18 +257,6 @@ async function saveToSupabase(product, isUpdate = false) {
             
             if (error) {
                 console.error('Supabase insert error:', error.message, error.details, error.hint);
-                
-                // If columns don't exist, retry without image file fields
-                if (error.message && error.message.includes('column')) {
-                    console.log('Retrying without image file columns...');
-                    delete dbRecord.local_image_file;
-                    delete dbRecord.abroad_image_file;
-                    const { data: retryData, error: retryError } = await db.from('products').insert(dbRecord).select().single();
-                    if (retryError) throw retryError;
-                    if (retryData) product.id = retryData.id;
-                    console.log('✅ Product inserted (without image files)');
-                    return true;
-                }
                 throw error;
             }
             
