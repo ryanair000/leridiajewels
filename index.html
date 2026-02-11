@@ -6,12 +6,12 @@
     <title>Leridia Jewels - Inventory Management</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="config.js?v=3"></script>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="form-styles-addon.css">
-    <link rel="stylesheet" href="responsive.css">
-    <link rel="stylesheet" href="enhancements.css">
-    <link rel="stylesheet" href="utilities.css">
+    <script src="config.js?v=4"></script>
+    <link rel="stylesheet" href="styles.css?v=4">
+    <link rel="stylesheet" href="form-styles-addon.css?v=4">
+    <link rel="stylesheet" href="responsive.css?v=4">
+    <link rel="stylesheet" href="enhancements.css?v=4">
+    <link rel="stylesheet" href="utilities.css?v=4">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -696,13 +696,26 @@
                     <input type="hidden" id="productId">
                     <input type="hidden" id="productSKU">
                     
-                    <!-- Step Indicator -->
-                    <div class="form-progress">
-                        <div class="progress-step active">1. Basic Info</div>
-                        <div class="progress-step">2. Pricing</div>
-                        <div class="progress-step">3. Images</div>
+                    <!-- Tab Navigation -->
+                    <div class="form-tabs">
+                        <button type="button" class="form-tab active" onclick="switchFormTab(0)" data-tab="0">
+                            <span class="tab-number">1</span>
+                            <span class="tab-label">Basic Info</span>
+                        </button>
+                        <div class="tab-connector"></div>
+                        <button type="button" class="form-tab" onclick="switchFormTab(1)" data-tab="1">
+                            <span class="tab-number">2</span>
+                            <span class="tab-label">Pricing</span>
+                        </button>
+                        <div class="tab-connector"></div>
+                        <button type="button" class="form-tab" onclick="switchFormTab(2)" data-tab="2">
+                            <span class="tab-number">3</span>
+                            <span class="tab-label">Images</span>
+                        </button>
                     </div>
                     
+                    <!-- Tab 1: Basic Info -->
+                    <div class="form-tab-panel active" data-panel="0">
                     <div class="form-group">
                         <label for="productName">Product Name *</label>
                         <input type="text" id="productName" required placeholder="e.g., Gold Plated Heart Earrings" autofocus>
@@ -774,6 +787,16 @@
                         </div>
                     </div>
                     
+                    <div class="tab-nav-buttons">
+                        <span></span>
+                        <button type="button" class="btn-primary btn-tab-next" onclick="switchFormTab(1)">
+                            Pricing <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    </div>
+                    
+                    <!-- Tab 2: Pricing -->
+                    <div class="form-tab-panel" data-panel="1">
                     <div class="form-section">
                         <h4><i class="fas fa-map-marker-alt"></i> Local Pricing (KSH)</h4>
                         <div class="form-row">
@@ -806,6 +829,18 @@
                         </div>
                     </div>
                     
+                    <div class="tab-nav-buttons">
+                        <button type="button" class="btn-secondary btn-tab-prev" onclick="switchFormTab(0)">
+                            <i class="fas fa-arrow-left"></i> Basic Info
+                        </button>
+                        <button type="button" class="btn-primary btn-tab-next" onclick="switchFormTab(2)">
+                            Images <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    </div>
+                    
+                    <!-- Tab 3: Images -->
+                    <div class="form-tab-panel" data-panel="2">
                     <!-- Images Section -->
                     <div class="form-section">
                         <h4><i class="fas fa-image"></i> Product Images</h4>
@@ -845,6 +880,14 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="tab-nav-buttons">
+                        <button type="button" class="btn-secondary btn-tab-prev" onclick="switchFormTab(1)">
+                            <i class="fas fa-arrow-left"></i> Pricing
+                        </button>
+                        <span></span>
+                    </div>
                     </div>
                 </form>
             </div>
@@ -1042,7 +1085,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=3"></script>
-    <script src="enhancements.js?v=3"></script>
+    <script src="app.js?v=4"></script>
+    <script src="enhancements.js?v=4"></script>
 </body>
 </html>

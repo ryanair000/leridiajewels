@@ -56,7 +56,7 @@
 
 /* Ensure modal is wide enough for horizontal form */
 .modal {
-    max-width: 1000px !important;
+    max-width: 780px !important;
     width: 95vw;
 }
 

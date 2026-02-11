@@ -66,6 +66,14 @@
     .content-section {
         padding: 20px;
     }
+    
+    .form-tab .tab-label {
+        display: none;
+    }
+    
+    .form-tab {
+        padding: 10px 12px;
+    }
 }
 
 /* Mobile Breakpoint */
@@ -186,7 +194,6 @@
         align-items: center;
         gap: 12px;
         padding: 14px;
-    }
     }
     
     .btn-primary,
