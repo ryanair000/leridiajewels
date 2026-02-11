@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Leridia Jewels - Inventory Management</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="form-styles-addon.css">
     <link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="enhancements.css">
+    <link rel="stylesheet" href="utilities.css">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -54,6 +55,14 @@
                 <a href="#" class="nav-item" data-section="pricing">
                     <i class="fas fa-dollar-sign"></i>
                     <span>Pricing</span>
+                </a>
+                <a href="#" class="nav-item" data-section="suppliers">
+                    <i class="fas fa-truck"></i>
+                    <span>Suppliers</span>
+                </a>
+                <a href="#" class="nav-item" data-section="ideas">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Ideas</span>
                 </a>
             </nav>
             
@@ -535,11 +544,11 @@
                         <table class="data-table full-table">
                             <thead>
                                 <tr>
-                                    <th>Product Name</th>
-                                    <th>SKU</th>
+                                    <th>Item No.</th>
                                     <th>Category</th>
-                                    <th>Quantity (pcs)</th>
-                                    <th>Status</th>
+                                    <th>Buying Price (KSH)</th>
+                                    <th>Quantity</th>
+                                    <th>Total Cost (KSH)</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -591,6 +600,50 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </section>
+
+            <!-- Suppliers Section -->
+            <section id="suppliers" class="content-section">
+                <div class="section-header">
+                    <h2>Suppliers Management</h2>
+                    <button class="btn-primary" onclick="openSupplierModal()">
+                        <i class="fas fa-plus"></i> Add Supplier
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table full-table">
+                            <thead>
+                                <tr>
+                                    <th>Supplier Name</th>
+                                    <th>Location</th>
+                                    <th>Contact</th>
+                                    <th>Category</th>
+                                    <th>Source</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliersTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ideas Section -->
+            <section id="ideas" class="content-section">
+                <div class="section-header">
+                    <h2>My Ideas</h2>
+                    <button class="btn-primary" onclick="addNewIdea()">
+                        <i class="fas fa-plus"></i> New Idea
+                    </button>
+                </div>
+                
+                <div class="ideas-grid" id="ideasGrid">
+                    <!-- Populated by JS with note cards -->
                 </div>
             </section>
         </main>
@@ -835,6 +888,118 @@
             <div class="confirmation-dialog-actions">
                 <button class="btn-secondary" onclick="closeConfirmation()">Cancel</button>
                 <button class="btn-primary" id="confirmActionBtn" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Supplier Modal -->
+    <div class="modal-overlay" id="supplierModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="supplierModalTitle">Add New Supplier</h3>
+                <button class="btn-close" onclick="closeSupplierModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="supplierForm" autocomplete="off">
+                    <input type="hidden" id="supplierId">
+                    
+                    <div class="form-group">
+                        <label for="supplierName">Supplier Name *</label>
+                        <input type="text" id="supplierName" required placeholder="e.g., Gold Imports Ltd">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="supplierLocation">Location *</label>
+                            <input type="text" id="supplierLocation" required placeholder="e.g., Nairobi, Kenya">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplierContact">Contact (+254) *</label>
+                            <input type="tel" id="supplierContact" required placeholder="712345678" pattern="[0-9]{9,10}">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Enter number without +254</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="supplierCategory">Category *</label>
+                            <select id="supplierCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Earrings">Earrings</option>
+                                <option value="Necklaces">Necklaces</option>
+                                <option value="Rings">Rings</option>
+                                <option value="Bracelets/Bangles">Bracelets / Bangles</option>
+                                <option value="Anklets">Anklets</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Multiple">Multiple Categories</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="supplierSource">Source *</label>
+                            <select id="supplierSource" required>
+                                <option value="">Select Source</option>
+                                <option value="Local">Local</option>
+                                <option value="Import">Import</option>
+                                <option value="Online">Online</option>
+                                <option value="Wholesale">Wholesale</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeSupplierModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn-primary" onclick="saveSupplier(event)">
+                    <i class="fas fa-check"></i> Save Supplier
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Idea Modal -->
+    <div class="modal-overlay" id="ideaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="ideaModalTitle">Edit Idea</h3>
+                <button class="btn-close" onclick="closeIdeaModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="ideaForm" autocomplete="off">
+                    <input type="hidden" id="ideaId">
+                    
+                    <div class="form-group">
+                        <label for="ideaTitle">Title</label>
+                        <input type="text" id="ideaTitle" placeholder="Idea title...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ideaContent">Content *</label>
+                        <textarea id="ideaContent" rows="8" required placeholder="Write your idea here..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ideaColor">Color</label>
+                        <div class="color-picker">
+                            <button type="button" class="color-option" data-color="#ffffff" style="background: #ffffff;" onclick="selectIdeaColor('#ffffff')"></button>
+                            <button type="button" class="color-option" data-color="#f3e5ab" style="background: #f3e5ab;" onclick="selectIdeaColor('#f3e5ab')"></button>
+                            <button type="button" class="color-option" data-color="#ffe4e1" style="background: #ffe4e1;" onclick="selectIdeaColor('#ffe4e1')"></button>
+                            <button type="button" class="color-option" data-color="#e6f3ff" style="background: #e6f3ff;" onclick="selectIdeaColor('#e6f3ff')"></button>
+                            <button type="button" class="color-option" data-color="#f0fff0" style="background: #f0fff0;" onclick="selectIdeaColor('#f0fff0')"></button>
+                            <button type="button" class="color-option" data-color="#fff0f5" style="background: #fff0f5;" onclick="selectIdeaColor('#fff0f5')"></button>
+                        </div>
+                        <input type="hidden" id="ideaColor" value="#ffffff">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeIdeaModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn-primary" onclick="saveIdea(event)">
+                    <i class="fas fa-check"></i> Save Idea
+                </button>
             </div>
         </div>
     </div>

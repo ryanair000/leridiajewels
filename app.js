@@ -53,6 +53,12 @@ const categoryIcons = {
 // Products array
 let products = [];
 
+// Suppliers array
+let suppliers = [];
+
+// Ideas array
+let ideas = [];
+
 // Supabase client reference
 let db = null;
 
@@ -89,10 +95,16 @@ async function initializeApp() {
     // Load products from Supabase
     await loadProducts();
     
+    // Load suppliers and ideas from localStorage
+    suppliers = loadFromLocalStorage('suppliers');
+    ideas = loadFromLocalStorage('ideas');
+    
     updateDashboard();
     renderProducts();
     renderInventory();
     renderPricing();
+    renderSuppliers();
+    renderIdeas();
     initializeCharts();
     
     // Update connection status indicator
@@ -751,13 +763,15 @@ function renderInventory() {
     // Sort by stock (lowest first)
     const sortedProducts = [...products].sort((a, b) => a.stock - b.stock);
     
-    tbody.innerHTML = sortedProducts.map(product => `
+    tbody.innerHTML = sortedProducts.map((product, index) => {
+        const totalCost = product.stock * product.localPrice;
+        return `
         <tr>
-            <td><strong>${product.name}</strong></td>
-            <td>${product.sku}</td>
+            <td><strong>${index + 1}</strong></td>
             <td>${product.category}</td>
+            <td class="price">KSH ${product.localPrice.toFixed(2)}</td>
             <td><strong>${product.stock}</strong></td>
-            <td><span class="stock-badge ${getStockStatus(product.stock)}">${getStockLabel(product.stock)}</span></td>
+            <td class="price">KSH ${totalCost.toFixed(2)}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Product">
@@ -772,7 +786,7 @@ function renderInventory() {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
 // Render Pricing Table
@@ -1344,6 +1358,274 @@ function filterInventoryByStatus(status) {
     }, 100);
 }
 
+// =============================================
+// SUPPLIERS MANAGEMENT
+// =============================================
+
+// Render Suppliers Table
+function renderSuppliers() {
+    const tbody = document.getElementById('suppliersTable');
+    
+    if (suppliers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <i class="fas fa-truck"></i>
+                    <h4>No suppliers added</h4>
+                    <p>Add suppliers to track your sources</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = suppliers.map(supplier => `
+        <tr>
+            <td><strong>${supplier.name}</strong></td>
+            <td><i class="fas fa-map-marker-alt"></i> ${supplier.location}</td>
+            <td><i class="fas fa-phone"></i> +254 ${supplier.contact}</td>
+            <td><span class="category-badge">${supplier.category}</span></td>
+            <td><span class="source-badge">${supplier.source}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="action-btn edit" onclick="editSupplier('${supplier.id}')" title="Edit Supplier">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteSupplier('${supplier.id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Open Supplier Modal
+function openSupplierModal() {
+    document.getElementById('supplierModal').classList.add('active');
+    document.getElementById('supplierModalTitle').textContent = 'Add New Supplier';
+    document.getElementById('supplierForm').reset();
+    document.getElementById('supplierId').value = '';
+}
+
+// Close Supplier Modal
+function closeSupplierModal() {
+    document.getElementById('supplierModal').classList.remove('active');
+}
+
+// Edit Supplier
+function editSupplier(id) {
+    const supplier = suppliers.find(s => s.id === id);
+    if (!supplier) return;
+    
+    document.getElementById('supplierModal').classList.add('active');
+    document.getElementById('supplierModalTitle').textContent = 'Edit Supplier';
+    document.getElementById('supplierId').value = supplier.id;
+    document.getElementById('supplierName').value = supplier.name;
+    document.getElementById('supplierLocation').value = supplier.location;
+    document.getElementById('supplierContact').value = supplier.contact;
+    document.getElementById('supplierCategory').value = supplier.category;
+    document.getElementById('supplierSource').value = supplier.source;
+}
+
+// Save Supplier
+function saveSupplier(e) {
+    e.preventDefault();
+    
+    const form = document.getElementById('supplierForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const supplierId = document.getElementById('supplierId').value;
+    const supplierData = {
+        id: supplierId || Date.now().toString(),
+        name: document.getElementById('supplierName').value,
+        location: document.getElementById('supplierLocation').value,
+        contact: document.getElementById('supplierContact').value,
+        category: document.getElementById('supplierCategory').value,
+        source: document.getElementById('supplierSource').value,
+        createdAt: supplierId ? suppliers.find(s => s.id === supplierId)?.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    if (supplierId) {
+        const index = suppliers.findIndex(s => s.id === supplierId);
+        if (index !== -1) {
+            suppliers[index] = supplierData;
+        }
+        showToast('✅ Supplier updated successfully!', 'success');
+    } else {
+        suppliers.push(supplierData);
+        showToast('✅ Supplier added successfully!', 'success');
+    }
+    
+    saveToLocalStorage('suppliers', suppliers);
+    renderSuppliers();
+    closeSupplierModal();
+}
+
+// Delete Supplier
+function deleteSupplier(id) {
+    if (!confirm('Are you sure you want to delete this supplier?')) return;
+    
+    suppliers = suppliers.filter(s => s.id !== id);
+    saveToLocalStorage('suppliers', suppliers);
+    renderSuppliers();
+    showToast('✅ Supplier deleted successfully!', 'success');
+}
+
+// =============================================
+// IDEAS MANAGEMENT
+// =============================================
+
+// Render Ideas Grid
+function renderIdeas() {
+    const grid = document.getElementById('ideasGrid');
+    
+    if (ideas.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <i class="fas fa-lightbulb"></i>
+                <h4>No ideas yet</h4>
+                <p>Click "New Idea" to start capturing your thoughts</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = ideas.map(idea => `
+        <div class="idea-card" style="background-color: ${idea.color};" onclick="editIdea('${idea.id}')">
+            ${idea.title ? `<h4>${idea.title}</h4>` : ''}
+            <p>${idea.content}</p>
+            <div class="idea-footer">
+                <small>${new Date(idea.updatedAt).toLocaleDateString()}</small>
+                <button class="idea-delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Add New Idea
+function addNewIdea() {
+    document.getElementById('ideaModal').classList.add('active');
+    document.getElementById('ideaModalTitle').textContent = 'New Idea';
+    document.getElementById('ideaForm').reset();
+    document.getElementById('ideaId').value = '';
+    document.getElementById('ideaColor').value = '#ffffff';
+    document.querySelectorAll('.color-option').forEach(btn => btn.classList.remove('selected'));
+}
+
+// Edit Idea
+function editIdea(id) {
+    const idea = ideas.find(i => i.id === id);
+    if (!idea) return;
+    
+    document.getElementById('ideaModal').classList.add('active');
+    document.getElementById('ideaModalTitle').textContent = 'Edit Idea';
+    document.getElementById('ideaId').value = idea.id;
+    document.getElementById('ideaTitle').value = idea.title || '';
+    document.getElementById('ideaContent').value = idea.content;
+    document.getElementById('ideaColor').value = idea.color;
+    
+    document.querySelectorAll('.color-option').forEach(btn => {
+        if (btn.dataset.color === idea.color) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+}
+
+// Close Idea Modal
+function closeIdeaModal() {
+    document.getElementById('ideaModal').classList.remove('active');
+}
+
+// Select Idea Color
+function selectIdeaColor(color) {
+    document.getElementById('ideaColor').value = color;
+    document.querySelectorAll('.color-option').forEach(btn => {
+        if (btn.dataset.color === color) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+}
+
+// Save Idea
+function saveIdea(e) {
+    e.preventDefault();
+    
+    const form = document.getElementById('ideaForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const ideaId = document.getElementById('ideaId').value;
+    const ideaData = {
+        id: ideaId || Date.now().toString(),
+        title: document.getElementById('ideaTitle').value,
+        content: document.getElementById('ideaContent').value,
+        color: document.getElementById('ideaColor').value,
+        createdAt: ideaId ? ideas.find(i => i.id === ideaId)?.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    if (ideaId) {
+        const index = ideas.findIndex(i => i.id === ideaId);
+        if (index !== -1) {
+            ideas[index] = ideaData;
+        }
+        showToast('✅ Idea updated successfully!', 'success');
+    } else {
+        ideas.push(ideaData);
+        showToast('✅ Idea saved successfully!', 'success');
+    }
+    
+    saveToLocalStorage('ideas', ideas);
+    renderIdeas();
+    closeIdeaModal();
+}
+
+// Delete Idea
+function deleteIdea(id) {
+    if (!confirm('Are you sure you want to delete this idea?')) return;
+    
+    ideas = ideas.filter(i => i.id !== id);
+    saveToLocalStorage('ideas', ideas);
+    renderIdeas();
+    showToast('✅ Idea deleted successfully!', 'success');
+}
+
+// Local Storage Helpers
+function saveToLocalStorage(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+        console.error('Error saving to localStorage:', error);
+    }
+}
+
+function loadFromLocalStorage(key) {
+    try {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    } catch (error) {
+        console.error('Error loading from localStorage:', error);
+        return [];
+    }
+}
+
+// =============================================
+// EXPOSE FUNCTIONS TO WINDOW
+// =============================================
+
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
 window.openAddProductModal = openAddProductModal;
@@ -1362,4 +1644,15 @@ window.previewImageUrl = previewImageUrl;
 window.calculateMargin = calculateMargin;
 window.filterInventoryByStatus = filterInventoryByStatus;
 window.filterByCategory = filterByCategory;
+window.openSupplierModal = openSupplierModal;
+window.closeSupplierModal = closeSupplierModal;
+window.editSupplier = editSupplier;
+window.saveSupplier = saveSupplier;
+window.deleteSupplier = deleteSupplier;
+window.addNewIdea = addNewIdea;
+window.editIdea = editIdea;
+window.closeIdeaModal = closeIdeaModal;
+window.selectIdeaColor = selectIdeaColor;
+window.saveIdea = saveIdea;
+window.deleteIdea = deleteIdea;
 
