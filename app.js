@@ -149,8 +149,10 @@ function transformFromDb(record) {
         id: record.id,
         name: record.name,
         sku: record.sku,
-        category: record.category,
-        type: record.type,
+        collection: record.collection,
+        chains: record.chains,
+        materials: record.materials,
+        addons: record.addons,
         size: record.size,
         quality: record.quality,
         stock: record.stock,
@@ -159,11 +161,13 @@ function transformFromDb(record) {
         localSelling: record.local_selling,
         abroadPrice: record.abroad_price,
         abroadSelling: record.abroad_selling,
-        description: record.description,
         localImageFile: record.local_image_file,
         localImageUrl: record.local_image_url,
         abroadImageFile: record.abroad_image_file,
         abroadImageUrl: record.abroad_image_url,
+        productNameImage: record.product_name_image,
+        collectionImage: record.collection_image,
+        materialImage: record.material_image,
         createdAt: record.created_at,
         updatedAt: record.updated_at
     };
@@ -174,22 +178,25 @@ function transformToDb(product) {
     return {
         name: product.name,
         sku: product.sku,
-        category: product.category,
-        type: product.type,
+        collection: product.collection,
+        chains: product.chains || null,
+        materials: product.materials || null,
+        addons: product.addons || null,
         size: product.size || null,
-        quality: product.quality,
+        quality: product.quality || null,
         stock: product.stock,
         weight_grams: product.weightGrams || null,
-        stock: product.stock,
         local_price: product.localPrice,
         local_selling: product.localSelling,
         abroad_price: product.abroadPrice,
         abroad_selling: product.abroadSelling,
-        description: product.description || null,
         local_image_file: product.localImageFile || null,
         local_image_url: product.localImageUrl || null,
         abroad_image_file: product.abroadImageFile || null,
-        abroad_image_url: product.abroadImageUrl || null
+        abroad_image_url: product.abroadImageUrl || null,
+        product_name_image: product.productNameImage || null,
+        collection_image: product.collectionImage || null,
+        material_image: product.materialImage || null
     };
 }
 
@@ -326,11 +333,24 @@ function updateTypeOptions() {
 }
 
 // Generate SKU
-function generateSKU(category, type) {
-    const prefix = category.substring(0, 2).toUpperCase();
-    const typePrefix = type.substring(0, 2).toUpperCase();
+function generateSKU(collection, chains) {
+    const prefix = collection ? collection.substring(0, 2).toUpperCase() : 'LJ';
+    const chainPrefix = chains ? chains.substring(0, 2).toUpperCase() : 'XX';
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `LJ-${prefix}${typePrefix}-${random}`;
+    return `LJ-${prefix}${chainPrefix}-${random}`;
+}
+
+// Update selected materials
+function updateMaterials() {
+    const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
+    const customMaterial = document.getElementById('customMaterial').value;
+    
+    const materials = Array.from(checkboxes).map(cb => cb.value);
+    if (customMaterial) {
+        materials.push(customMaterial);
+    }
+    
+    document.getElementById('productMaterials').value = materials.join(', ');
 }
 
 // Open Add Product Modal
@@ -338,7 +358,19 @@ function openAddProductModal() {
     document.getElementById('modalTitle').textContent = 'Add New Product';
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
-    document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
+    
+    // Reset material checkboxes
+    document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('productMaterials').value = '';
+    
+    // Clear image previews
+    ['productNamePreview', 'collectionPreview', 'materialPreview', 'localFilePreview', 'localUrlPreview', 'abroadFilePreview', 'abroadUrlPreview'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = '';
+    });
+    
     document.getElementById('productModal').classList.add('active');
 }
 
@@ -351,14 +383,21 @@ function openEditProductModal(productId) {
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.name;
     document.getElementById('productSKU').value = product.sku;
-    document.getElementById('productCategory').value = product.category;
+    document.getElementById('productCollection').value = product.collection || '';
+    document.getElementById('productChains').value = product.chains || '';
+    document.getElementById('productAddons').value = product.addons || '';
     
-    // Update type options and set value
-    updateTypeOptions();
-    document.getElementById('productType').value = product.type;
+    // Set materials checkboxes
+    if (product.materials) {
+        const materials = product.materials.split(',').map(m => m.trim());
+        document.querySelectorAll('#productMaterials input[type="checkbox"]').forEach(cb => {
+            cb.checked = materials.includes(cb.value);
+        });
+        updateMaterials();
+    }
     
     document.getElementById('productSize').value = product.size || '';
-    document.getElementById('productQuality').value = product.quality;
+    document.getElementById('productQuality').value = product.quality || '';
     document.getElementById('productStock').value = product.stock;
     document.getElementById('productWeight').value = product.weightGrams || '';
     document.getElementById('localPrice').value = product.localPrice;
@@ -380,6 +419,15 @@ function openEditProductModal(productId) {
     }
     if (product.abroadImageUrl) {
         document.getElementById('abroadUrlPreview').innerHTML = `<img src="${product.abroadImageUrl}" alt="Abroad Product">`;
+    }
+    if (product.productNameImage) {
+        document.getElementById('productNamePreview').innerHTML = `<img src="${product.productNameImage}" alt="Product Name">`;
+    }
+    if (product.collectionImage) {
+        document.getElementById('collectionPreview').innerHTML = `<img src="${product.collectionImage}" alt="Collection">`;
+    }
+    if (product.materialImage) {
+        document.getElementById('materialPreview').innerHTML = `<img src="${product.materialImage}" alt="Material">`;
     }
     
     document.getElementById('productModal').classList.add('active');
@@ -423,15 +471,28 @@ async function saveProduct(e) {
     }
     
     const productId = document.getElementById('productId').value;
-    const category = document.getElementById('productCategory').value;
-    const type = document.getElementById('productType').value;
+    const collection = document.getElementById('productCollection').value;
     
-    // Handle image file uploads and URLs
+    // Get chain value
+    const chainSelect = document.getElementById('productChains').value;
+    const customChain = document.getElementById('customChain').value;
+    const chains = chainSelect || customChain || '';
+    
+    // Get materials value (from hidden field updated by updateMaterials)
+    const materials = document.getElementById('productMaterials').value;
+    
+    // Handle image file uploads
     const localImageFile = document.getElementById('localImageFile').files[0];
     const abroadImageFile = document.getElementById('abroadImageFile').files[0];
+    const productNameImageFile = document.getElementById('productNameImage').files[0];
+    const collectionImageFile = document.getElementById('collectionImage').files[0];
+    const materialImageFile = document.getElementById('materialImage').files[0];
     
     let localImageFileData = productId ? products.find(p => p.id == productId)?.localImageFile : null;
     let abroadImageFileData = productId ? products.find(p => p.id == productId)?.abroadImageFile : null;
+    let productNameImageData = productId ? products.find(p => p.id == productId)?.productNameImage : null;
+    let collectionImageData = productId ? products.find(p => p.id == productId)?.collectionImage : null;
+    let materialImageData = productId ? products.find(p => p.id == productId)?.materialImage : null;
     
     if (localImageFile) {
         localImageFileData = await fileToBase64(localImageFile);
@@ -441,12 +502,26 @@ async function saveProduct(e) {
         abroadImageFileData = await fileToBase64(abroadImageFile);
     }
     
+    if (productNameImageFile) {
+        productNameImageData = await fileToBase64(productNameImageFile);
+    }
+    
+    if (collectionImageFile) {
+        collectionImageData = await fileToBase64(collectionImageFile);
+    }
+    
+    if (materialImageFile) {
+        materialImageData = await fileToBase64(materialImageFile);
+    }
+    
     const productData = {
         id: productId || null,
         name: document.getElementById('productName').value,
-        sku: document.getElementById('productSKU').value || generateSKU(category, type),
-        category: category,
-        type: type,
+        sku: document.getElementById('productSKU').value || generateSKU(collection, chains),
+        collection: collection,
+        chains: chains,
+        materials: materials,
+        addons: document.getElementById('productAddons').value,
         size: document.getElementById('productSize').value,
         quality: document.getElementById('productQuality').value,
         stock: parseInt(document.getElementById('productStock').value) || 0,
@@ -459,6 +534,9 @@ async function saveProduct(e) {
         localImageUrl: document.getElementById('localImageUrl').value || null,
         abroadImageFile: abroadImageFileData,
         abroadImageUrl: document.getElementById('abroadImageUrl').value || null,
+        productNameImage: productNameImageData,
+        collectionImage: collectionImageData,
+        materialImage: materialImageData,
         createdAt: productId ? products.find(p => p.id == productId)?.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
@@ -627,7 +705,7 @@ function renderRecentProducts() {
                 </div>
             </td>
             <td><strong>${product.name}</strong></td>
-            <td>${product.category}</td>
+            <td>${product.collection || '-'}</td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
             <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
             <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
@@ -699,9 +777,10 @@ function renderProducts(filteredProducts = null) {
             </td>
             <td><div class="product-image"><img src="${getProductImage(product)}" alt="${product.name}" onclick="openLightbox('${getProductImage(product)}')"></div></td>
             <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.sku}</small></td>
-            <td>${product.category}</td>
-            <td>${product.type}</td>
-            <td class="column-hideable">${product.quality}</td>
+            <td>${product.collection || '-'}</td>
+            <td>${product.materials || '-'}</td>
+            <td class="column-hideable">${product.chains || '-'}</td>
+            <td class="column-hideable">${product.quality || '-'}</td>
             <td class="column-hideable">${product.weightGrams ? product.weightGrams + 'g' : '-'}</td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
             <td class="column-hideable price">KSH ${product.localPrice.toFixed(2)}</td>
@@ -755,7 +834,7 @@ function renderInventory() {
         <tr>
             <td><strong>${product.name}</strong></td>
             <td>${product.sku}</td>
-            <td>${product.category}</td>
+            <td>${product.collection || '-'}</td>
             <td><strong>${product.stock}</strong></td>
             <td><span class="stock-badge ${getStockStatus(product.stock)}">${getStockLabel(product.stock)}</span></td>
             <td>
@@ -799,7 +878,7 @@ function renderPricing() {
         return `
             <tr>
                 <td><strong>${product.name}</strong></td>
-                <td>${product.category}</td>
+                <td>${product.collection || '-'}</td>
                 <td class="price">KSH ${product.localPrice.toFixed(2)}</td>
                 <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
                 <td class="${parseFloat(localMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${localMargin}%</td>
@@ -1362,4 +1441,5 @@ window.previewImageUrl = previewImageUrl;
 window.calculateMargin = calculateMargin;
 window.filterInventoryByStatus = filterInventoryByStatus;
 window.filterByCategory = filterByCategory;
+window.updateMaterials = updateMaterials;
 
