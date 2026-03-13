@@ -440,7 +440,7 @@ function openEditProductModal(productId) {
     
     // Show existing images (all clickable to open lightbox)
     const setPreview = (id, src, alt) => {
-        if (src) document.getElementById(id).innerHTML = `<img src="${src}" alt="${alt}" onclick="openLightbox(this.src)" title="Click to enlarge">`;
+        if (src) document.getElementById(id).innerHTML = `<img src="${src}" alt="${alt}" title="Click to enlarge"><span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span>`;
     };
     setPreview('localFilePreview', product.localImageFile, 'Local Product');
     setPreview('localUrlPreview', product.localImageUrl, 'Local Product');
@@ -738,8 +738,9 @@ function renderRecentProducts() {
     tbody.innerHTML = recentProducts.map(product => `
         <tr>
             <td>
-                <div class="product-image">
-                    <img src="${getProductImage(product)}" alt="${product.name}">
+                <div class="product-image viewable">
+                    <img src="${getProductImage(product)}" alt="${product.name}" title="Click to enlarge">
+                    <span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span>
                 </div>
             </td>
             <td><strong>${product.name}</strong></td>
@@ -813,7 +814,7 @@ function renderProducts(filteredProducts = null) {
                 <input type="checkbox" class="product-checkbox" value="${product.id}" 
                        onchange="toggleProductSelection(this, '${product.id}')">
             </td>
-            <td><div class="product-image"><img src="${getProductImage(product)}" alt="${product.name}" onclick="openLightbox('${getProductImage(product)}')"></div></td>
+            <td><div class="product-image viewable"><img src="${getProductImage(product)}" alt="${product.name}" title="Click to enlarge"><span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span></div></td>
             <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.sku}</small></td>
             <td>${product.collection || '-'}</td>
             <td>${product.materials || '-'}</td>
@@ -1106,7 +1107,7 @@ async function previewImage(event, type) {
         };
         const previewId = previewMap[type];
         if (previewId) {
-            document.getElementById(previewId).innerHTML = `<img src="${base64}" alt="Preview" onclick="openLightbox(this.src)" title="Click to enlarge">`;
+            document.getElementById(previewId).innerHTML = `<img src="${base64}" alt="Preview" title="Click to enlarge"><span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span>`;
         }
     }
 }
@@ -1123,7 +1124,8 @@ function previewImageUrl(type) {
     }
     
     if (url) {
-        document.getElementById(previewId).innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=\\'image-error\\'>Invalid image URL</div>'">`;
+        document.getElementById(previewId).innerHTML = `<img src="${url}" alt="Preview" title="Click to enlarge" onerror="this.parentElement.innerHTML='<div class=\\'image-error\\'>Invalid image URL</div>'">`
+            + `<span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span>`;
     }
 }
 
@@ -1467,6 +1469,23 @@ function filterInventoryByStatus(status) {
         }
     }, 100);
 }
+
+// ─── Global image-click delegation ─────────────────────────────────────
+// Handles click-to-enlarge for ALL product images and form previews.
+document.addEventListener('click', function(e) {
+    // Click on the img itself or the zoom-hint icon inside a preview container
+    const img = e.target.closest('.image-preview img, .product-image.viewable img');
+    if (!img) return;
+    const src = img.src;
+    if (!src || src.includes('No+Image') || src.startsWith('data:image/svg')) return;
+    e.stopPropagation();
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImg = document.getElementById('lightboxImage');
+    if (lightbox && lightboxImg) {
+        lightboxImg.src = src;
+        lightbox.classList.add('active');
+    }
+});
 
 // Expose functions to window for HTML onclick handlers
 window.showSection = showSection;
