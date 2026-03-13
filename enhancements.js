@@ -2,6 +2,68 @@
    UI Enhancements JavaScript
    ============================================= */
 
+// ---- Form Tab Navigation ----
+let currentFormTab = 0;
+
+function switchFormTab(tabIndex) {
+    currentFormTab = tabIndex;
+    
+    // Update tab buttons
+    const tabs = document.querySelectorAll('.form-tab');
+    tabs.forEach((tab, i) => {
+        tab.classList.remove('active');
+        if (i < tabIndex) {
+            tab.classList.add('completed');
+        } else {
+            tab.classList.remove('completed');
+        }
+        if (i === tabIndex) {
+            tab.classList.add('active');
+        }
+    });
+    
+    // Update panels
+    const panels = document.querySelectorAll('.form-tab-panel');
+    panels.forEach((panel, i) => {
+        panel.classList.remove('active');
+        if (i === tabIndex) {
+            panel.classList.add('active');
+        }
+    });
+    
+    // Scroll modal to top of form
+    const modalBody = document.querySelector('#productModal .modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+}
+
+// Reset tabs when opening add modal
+const _origOpenAddProductModal = window.openAddProductModal;
+if (_origOpenAddProductModal) {
+    window.openAddProductModal = function() {
+        _origOpenAddProductModal.apply(this, arguments);
+        switchFormTab(0);
+    };
+}
+
+const _origOpenEditProductModal = window.openEditProductModal;
+if (_origOpenEditProductModal) {
+    window.openEditProductModal = function() {
+        _origOpenEditProductModal.apply(this, arguments);
+        switchFormTab(0);
+    };
+}
+
+const _origOpenAddProductModalWithCategory = window.openAddProductModalWithCategory;
+if (_origOpenAddProductModalWithCategory) {
+    window.openAddProductModalWithCategory = function() {
+        _origOpenAddProductModalWithCategory.apply(this, arguments);
+        switchFormTab(0);
+    };
+}
+
+// Expose globally
+window.switchFormTab = switchFormTab;
+
 // Mobile Menu Toggle
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
