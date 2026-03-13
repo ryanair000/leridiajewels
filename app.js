@@ -130,7 +130,7 @@ async function loadProducts() {
         
         if (error) {
             console.error('Supabase error:', error);
-            showToast('Error loading products: ' + error.message);
+            showToast('Error loading products: ' + error.message, 'error');
             products = [];
         } else {
             products = data.map(transformFromDb) || [];
@@ -138,7 +138,7 @@ async function loadProducts() {
         }
     } catch (err) {
         console.error('Failed to load from Supabase:', err);
-        showToast('Failed to load products');
+        showToast('Failed to load products', 'error');
         products = [];
     }
 }
@@ -168,6 +168,7 @@ function transformFromDb(record) {
         productNameImage: record.product_name_image,
         collectionImage: record.collection_image,
         materialImage: record.material_image,
+        addonImage: record.addon_image,
         createdAt: record.created_at,
         updatedAt: record.updated_at
     };
@@ -196,7 +197,8 @@ function transformToDb(product) {
         abroad_image_url: product.abroadImageUrl || null,
         product_name_image: product.productNameImage || null,
         collection_image: product.collectionImage || null,
-        material_image: product.materialImage || null
+        material_image: product.materialImage || null,
+        addon_image: product.addonImage || null
     };
 }
 
@@ -342,15 +344,37 @@ function generateSKU(collection, chains) {
 
 // Update selected materials
 function updateMaterials() {
-    const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
-    const customMaterial = document.getElementById('customMaterial').value;
-    
+    const checkboxes = document.querySelectorAll('#materialCheckboxGroup input[type="checkbox"]:checked');
     const materials = Array.from(checkboxes).map(cb => cb.value);
-    if (customMaterial) {
-        materials.push(customMaterial);
-    }
-    
     document.getElementById('productMaterials').value = materials.join(', ');
+}
+
+// Add a new custom material as a pill checkbox
+function addCustomMaterial(value) {
+    const input = document.getElementById('customMaterial');
+    const material = (value !== undefined ? String(value) : input.value).trim();
+    if (!material) return;
+
+    const group = document.getElementById('materialCheckboxGroup');
+    if (!group) return;
+
+    // Avoid duplicates — just check the existing one
+    for (let cb of group.querySelectorAll('input[type="checkbox"]')) {
+        if (cb.value.toLowerCase() === material.toLowerCase()) {
+            cb.checked = true;
+            updateMaterials();
+            if (value === undefined) input.value = '';
+            return;
+        }
+    }
+
+    // Create a removable pill
+    const label = document.createElement('label');
+    label.className = 'checkbox-label custom-material-tag';
+    label.innerHTML = `<input type="checkbox" value="${material}" onchange="updateMaterials()" checked> ${material} <span class="remove-tag" onclick="this.closest('label').remove();updateMaterials();" title="Remove"><i class="fas fa-times"></i></span>`;
+    group.appendChild(label);
+    updateMaterials();
+    if (value === undefined) input.value = '';
 }
 
 // Open Add Product Modal
@@ -359,16 +383,16 @@ function openAddProductModal() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     
-    // Reset material checkboxes
-    document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-    });
+    // Reset material checkboxes and remove any custom tags
+    document.querySelectorAll('.custom-material-tag').forEach(el => el.remove());
+    document.querySelectorAll('#materialCheckboxGroup input[type="checkbox"]').forEach(cb => cb.checked = false);
     document.getElementById('productMaterials').value = '';
+    document.getElementById('customMaterial').value = '';
     
     // Clear image previews
-    ['productNamePreview', 'collectionPreview', 'materialPreview', 'localFilePreview', 'localUrlPreview', 'abroadFilePreview', 'abroadUrlPreview'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.innerHTML = '';
+    ['productNamePreview', 'collectionPreview', 'materialPreview', 'addonPreview', 'localFilePreview', 'localUrlPreview', 'abroadFilePreview', 'abroadUrlPreview'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
     });
     
     document.getElementById('productModal').classList.add('active');
@@ -387,11 +411,18 @@ function openEditProductModal(productId) {
     document.getElementById('productChains').value = product.chains || '';
     document.getElementById('productAddons').value = product.addons || '';
     
-    // Set materials checkboxes
+    // Set materials: restore predefined checkboxes + re-create custom tags
+    document.querySelectorAll('.custom-material-tag').forEach(el => el.remove());
     if (product.materials) {
-        const materials = product.materials.split(',').map(m => m.trim());
-        document.querySelectorAll('#productMaterials input[type="checkbox"]').forEach(cb => {
-            cb.checked = materials.includes(cb.value);
+        const materialList = product.materials.split(',').map(m => m.trim()).filter(Boolean);
+        const group = document.getElementById('materialCheckboxGroup');
+        const predefined = Array.from(group.querySelectorAll('input[type="checkbox"]'));
+        const predefinedValues = predefined.map(cb => cb.value.toLowerCase());
+        predefined.forEach(cb => {
+            cb.checked = materialList.map(m => m.toLowerCase()).includes(cb.value.toLowerCase());
+        });
+        materialList.forEach(m => {
+            if (!predefinedValues.includes(m.toLowerCase())) addCustomMaterial(m);
         });
         updateMaterials();
     }
@@ -407,28 +438,18 @@ function openEditProductModal(productId) {
     document.getElementById('localImageUrl').value = product.localImageUrl || '';
     document.getElementById('abroadImageUrl').value = product.abroadImageUrl || '';
     
-    // Show existing images
-    if (product.localImageFile) {
-        document.getElementById('localFilePreview').innerHTML = `<img src="${product.localImageFile}" alt="Local Product">`;
-    }
-    if (product.localImageUrl) {
-        document.getElementById('localUrlPreview').innerHTML = `<img src="${product.localImageUrl}" alt="Local Product">`;
-    }
-    if (product.abroadImageFile) {
-        document.getElementById('abroadFilePreview').innerHTML = `<img src="${product.abroadImageFile}" alt="Abroad Product">`;
-    }
-    if (product.abroadImageUrl) {
-        document.getElementById('abroadUrlPreview').innerHTML = `<img src="${product.abroadImageUrl}" alt="Abroad Product">`;
-    }
-    if (product.productNameImage) {
-        document.getElementById('productNamePreview').innerHTML = `<img src="${product.productNameImage}" alt="Product Name">`;
-    }
-    if (product.collectionImage) {
-        document.getElementById('collectionPreview').innerHTML = `<img src="${product.collectionImage}" alt="Collection">`;
-    }
-    if (product.materialImage) {
-        document.getElementById('materialPreview').innerHTML = `<img src="${product.materialImage}" alt="Material">`;
-    }
+    // Show existing images (all clickable to open lightbox)
+    const setPreview = (id, src, alt) => {
+        if (src) document.getElementById(id).innerHTML = `<img src="${src}" alt="${alt}" onclick="openLightbox(this.src)" title="Click to enlarge">`;
+    };
+    setPreview('localFilePreview', product.localImageFile, 'Local Product');
+    setPreview('localUrlPreview', product.localImageUrl, 'Local Product');
+    setPreview('abroadFilePreview', product.abroadImageFile, 'Abroad Product');
+    setPreview('abroadUrlPreview', product.abroadImageUrl, 'Abroad Product');
+    setPreview('productNamePreview', product.productNameImage, 'Product Name');
+    setPreview('collectionPreview', product.collectionImage, 'Collection');
+    setPreview('materialPreview', product.materialImage, 'Material');
+    setPreview('addonPreview', product.addonImage, 'Add-on');
     
     document.getElementById('productModal').classList.add('active');
 }
@@ -437,10 +458,10 @@ function openEditProductModal(productId) {
 function closeModal() {
     document.getElementById('productModal').classList.remove('active');
     // Clear image previews
-    document.getElementById('localFilePreview').innerHTML = '';
-    document.getElementById('localUrlPreview').innerHTML = '';
-    document.getElementById('abroadFilePreview').innerHTML = '';
-    document.getElementById('abroadUrlPreview').innerHTML = '';
+    ['localFilePreview', 'localUrlPreview', 'abroadFilePreview', 'abroadUrlPreview', 'productNamePreview', 'collectionPreview', 'materialPreview', 'addonPreview'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+    });
 }
 
 // Save Product
@@ -487,12 +508,14 @@ async function saveProduct(e) {
     const productNameImageFile = document.getElementById('productNameImage').files[0];
     const collectionImageFile = document.getElementById('collectionImage').files[0];
     const materialImageFile = document.getElementById('materialImage').files[0];
+    const addonImageFile = document.getElementById('addonImage').files[0];
     
     let localImageFileData = productId ? products.find(p => p.id == productId)?.localImageFile : null;
     let abroadImageFileData = productId ? products.find(p => p.id == productId)?.abroadImageFile : null;
     let productNameImageData = productId ? products.find(p => p.id == productId)?.productNameImage : null;
     let collectionImageData = productId ? products.find(p => p.id == productId)?.collectionImage : null;
     let materialImageData = productId ? products.find(p => p.id == productId)?.materialImage : null;
+    let addonImageData = productId ? products.find(p => p.id == productId)?.addonImage : null;
     
     if (localImageFile) {
         localImageFileData = await fileToBase64(localImageFile);
@@ -512,6 +535,10 @@ async function saveProduct(e) {
     
     if (materialImageFile) {
         materialImageData = await fileToBase64(materialImageFile);
+    }
+    
+    if (addonImageFile) {
+        addonImageData = await fileToBase64(addonImageFile);
     }
     
     const productData = {
@@ -537,6 +564,7 @@ async function saveProduct(e) {
         productNameImage: productNameImageData,
         collectionImage: collectionImageData,
         materialImage: materialImageData,
+        addonImage: addonImageData,
         createdAt: productId ? products.find(p => p.id == productId)?.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
@@ -578,12 +606,14 @@ async function saveProduct(e) {
         // Reset form for next product
         document.getElementById('productForm').reset();
         document.getElementById('productId').value = '';
-        document.getElementById('productType').innerHTML = '<option value="">Select Type</option>';
-        document.getElementById('localFilePreview').innerHTML = '';
-        document.getElementById('localUrlPreview').innerHTML = '';
-        document.getElementById('abroadFilePreview').innerHTML = '';
-        document.getElementById('abroadUrlPreview').innerHTML = '';
         document.getElementById('modalTitle').textContent = 'Add New Product';
+        document.querySelectorAll('.custom-material-tag').forEach(el => el.remove());
+        document.getElementById('productMaterials').value = '';
+        document.getElementById('customMaterial').value = '';
+        ['productNamePreview','collectionPreview','materialPreview','addonPreview','localFilePreview','localUrlPreview','abroadFilePreview','abroadUrlPreview'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+        });
     }
     
     // Only close modal if editing (not adding new)
@@ -608,12 +638,16 @@ async function deleteProduct(productId) {
         // Delete from Supabase
         const deleted = await deleteFromSupabase(productId);
         
+        if (!deleted) {
+            showToast('Failed to delete from cloud', 'error');
+        }
+        
         products = products.filter(p => p.id != productId);
         updateDashboard();
         renderProducts();
         renderInventory();
         renderPricing();
-        showToast('Product deleted successfully!');
+        showToast('Product deleted successfully!', 'success');
     }
 }
 
@@ -646,12 +680,16 @@ async function updateStock(e) {
         product.updatedAt = new Date().toISOString();
         
         // Update in Supabase
-        await saveToSupabase(product, true);
+        const saved = await saveToSupabase(product, true);
         
         updateDashboard();
         renderProducts();
         renderInventory();
-        showToast('Stock updated successfully!');
+        if (saved) {
+            showToast('Stock updated successfully!', 'success');
+        } else {
+            showToast('Stock updated locally but sync failed', 'warning');
+        }
     }
     
     closeStockModal();
@@ -991,7 +1029,7 @@ function showToast(message, type = 'success') {
 // Export Inventory
 function exportInventory() {
     if (products.length === 0) {
-        showToast('No products to export');
+        showToast('No products to export', 'warning');
         return;
     }
     
@@ -1024,23 +1062,23 @@ function exportInventory() {
     link.click();
     document.body.removeChild(link);
     
-    showToast('Inventory exported successfully!');
+    showToast('Inventory exported successfully!', 'success');
 }
 
 // Sync with Supabase (manual sync)
 async function syncWithCloud() {
     if (!isOnline || !db) {
-        showToast('Not connected to cloud');
+        showToast('Not connected to cloud', 'warning');
         return;
     }
     
-    showToast('Syncing with cloud...');
+    showToast('Syncing with cloud...', 'info');
     await loadProducts();
     updateDashboard();
     renderProducts();
     renderInventory();
     renderPricing();
-    showToast('Sync complete!');
+    showToast('Sync complete!', 'success');
 }
 
 // Convert file to base64
@@ -1053,15 +1091,22 @@ function fileToBase64(file) {
     });
 }
 
-// Preview image upload for local file
+// Preview image upload (images are clickable to open lightbox)
 async function previewImage(event, type) {
     const file = event.target.files[0];
     if (file) {
         const base64 = await fileToBase64(file);
-        if (type === 'local-file') {
-            document.getElementById('localFilePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
-        } else if (type === 'abroad-file') {
-            document.getElementById('abroadFilePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+        const previewMap = {
+            'local-file': 'localFilePreview',
+            'abroad-file': 'abroadFilePreview',
+            'product-name': 'productNamePreview',
+            'collection': 'collectionPreview',
+            'material': 'materialPreview',
+            'addon': 'addonPreview'
+        };
+        const previewId = previewMap[type];
+        if (previewId) {
+            document.getElementById(previewId).innerHTML = `<img src="${base64}" alt="Preview" onclick="openLightbox(this.src)" title="Click to enlarge">`;
         }
     }
 }
@@ -1442,4 +1487,5 @@ window.calculateMargin = calculateMargin;
 window.filterInventoryByStatus = filterInventoryByStatus;
 window.filterByCategory = filterByCategory;
 window.updateMaterials = updateMaterials;
+window.addCustomMaterial = addCustomMaterial;
 

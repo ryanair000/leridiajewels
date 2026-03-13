@@ -3,8 +3,8 @@
 // SUPABASE_URL and SUPABASE_ANON_KEY
 
 // Check for Netlify environment variables (injected at build) or use defaults for local dev
-const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://flannloidfpzzcbndiiu.supabase.co';
-const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYW5ubG9pZGZwenpjYm5kaWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzM2NDUsImV4cCI6MjA4NTgwOTY0NX0.Na3DJN-C3rvDJJjfNyiaVWKDGjJ2BPHxP1L443QbbAE';
+const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://tbmkrgqqhrjgznhqldiz.supabase.co';
+const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'sb_publishable_8m4ugHn8BSDgkBtUrsUB-A_3pxPww0_';
 
 // Initialize Supabase Client
 let supabaseClient = null;

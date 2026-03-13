@@ -609,24 +609,10 @@
                     <input type="hidden" id="productId">
                     <input type="hidden" id="productSKU">
                     
-                    <!-- Step Indicator -->
-                    <div class="form-progress">
-                        <div class="progress-step active">1. Basic Info</div>
-                        <div class="progress-step">2. Pricing</div>
-                        <div class="progress-step">3. Images</div>
-                    </div>
-                    
                     <div class="form-group">
                         <label for="productName">Product Name *</label>
                         <input type="text" id="productName" required placeholder="e.g., Gold Plated Heart Earrings" autofocus>
                         <small class="form-help"><i class="fas fa-info-circle"></i> Enter a descriptive name for the product</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="productNameImage"><i class="fas fa-image"></i> Product Name Image</label>
-                        <input type="file" id="productNameImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'product-name')">
-                        <small class="form-help"><i class="fas fa-info-circle"></i> Optional - Attach an image for the product name</small>
-                        <div class="image-preview" id="productNamePreview"></div>
                     </div>
                     
                     <div class="form-group">
@@ -640,13 +626,6 @@
                             <option value="Rosary">Rosary</option>
                         </select>
                         <small class="form-help"><i class="fas fa-info-circle"></i> Choose the product collection</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="collectionImage"><i class="fas fa-image"></i> Collection Image</label>
-                        <input type="file" id="collectionImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'collection')">
-                        <small class="form-help"><i class="fas fa-info-circle"></i> Optional - Attach an image for the collection</small>
-                        <div class="image-preview" id="collectionPreview"></div>
                     </div>
                     
                     <div class="form-group">
@@ -666,9 +645,9 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="productMaterials">Materials *</label>
-                        <div class="multi-select-container">
-                            <div class="checkbox-group">
+                        <label>Materials *</label>
+                        <div class="materials-container">
+                            <div class="checkbox-group" id="materialCheckboxGroup">
                                 <label class="checkbox-label"><input type="checkbox" value="Charms" onchange="updateMaterials()"> Charms</label>
                                 <label class="checkbox-label"><input type="checkbox" value="Beads" onchange="updateMaterials()"> Beads</label>
                                 <label class="checkbox-label"><input type="checkbox" value="Clasps" onchange="updateMaterials()"> Clasps</label>
@@ -676,17 +655,13 @@
                                 <label class="checkbox-label"><input type="checkbox" value="Crimp Tubes" onchange="updateMaterials()"> Crimp Tubes</label>
                                 <label class="checkbox-label"><input type="checkbox" value="Thread" onchange="updateMaterials()"> Thread</label>
                             </div>
-                            <input type="text" id="customMaterial" placeholder="Add custom material" style="margin-top: 8px;">
+                            <div class="add-material-row">
+                                <input type="text" id="customMaterial" placeholder="New material name..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMaterial();}">
+                                <button type="button" class="btn-add-material" onclick="addCustomMaterial()"><i class="fas fa-plus"></i> Add</button>
+                            </div>
                             <input type="hidden" id="productMaterials">
                         </div>
-                        <small class="form-help"><i class="fas fa-info-circle"></i> Select or add materials</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="materialImage"><i class="fas fa-image"></i> Material Image</label>
-                        <input type="file" id="materialImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'material')">
-                        <small class="form-help"><i class="fas fa-info-circle"></i> Optional - Attach an image for the materials</small>
-                        <div class="image-preview" id="materialPreview"></div>
+                        <small class="form-help"><i class="fas fa-info-circle"></i> Select existing or type a new one and click Add</small>
                     </div>
                     
                     <div class="form-group">
@@ -766,39 +741,59 @@
                     
                     <!-- Images Section -->
                     <div class="form-section">
-                        <h4><i class="fas fa-image"></i> Product Images</h4>
-                        <p class="section-description">Add images for each market. You can upload files or provide URLs.</p>
+                        <h4><i class="fas fa-images"></i> Product Images</h4>
+
+                        <p class="images-group-label"><i class="fas fa-paperclip"></i> Reference Images <small style="font-weight:400;text-transform:none;letter-spacing:0">(click thumbnail to enlarge)</small></p>
+                        <div class="attachment-images-grid">
+                            <div class="form-group">
+                                <label for="productNameImage"><i class="fas fa-tag"></i> Product Name</label>
+                                <input type="file" id="productNameImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'product-name')">
+                                <div class="image-preview" id="productNamePreview"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="collectionImage"><i class="fas fa-layer-group"></i> Collection</label>
+                                <input type="file" id="collectionImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'collection')">
+                                <div class="image-preview" id="collectionPreview"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="materialImage"><i class="fas fa-gem"></i> Materials</label>
+                                <input type="file" id="materialImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'material')">
+                                <div class="image-preview" id="materialPreview"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="addonImage"><i class="fas fa-gift"></i> Add-on</label>
+                                <input type="file" id="addonImage" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'addon')">
+                                <div class="image-preview" id="addonPreview"></div>
+                            </div>
+                        </div>
+
+                        <p class="images-group-label" style="margin-top: 14px;"><i class="fas fa-store"></i> Market Photos</p>
                         <div class="form-row">
-                            <!-- Local Product Images -->
                             <div class="form-group-half">
-                                <label class="section-label"><i class="fas fa-map-marker-alt"></i> Local Market Images</label>
+                                <label class="section-label"><i class="fas fa-map-marker-alt"></i> Local Market</label>
                                 <div class="form-group">
-                                    <label for="localImageFile"><i class="fas fa-upload"></i> Upload Image</label>
+                                    <label for="localImageFile"><i class="fas fa-upload"></i> Upload</label>
                                     <input type="file" id="localImageFile" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'local-file')">
-                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG - Max 5MB</small>
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG</small>
                                     <div class="image-preview" id="localFilePreview"></div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="localImageUrl"><i class="fas fa-link"></i> Or Image URL</label>
+                                    <label for="localImageUrl"><i class="fas fa-link"></i> Image URL</label>
                                     <input type="url" id="localImageUrl" placeholder="https://example.com/image.jpg" oninput="previewImageUrl('local-url')">
-                                    <small class="form-help"><i class="fas fa-info-circle"></i> Direct link to image file</small>
                                     <div class="image-preview" id="localUrlPreview"></div>
                                 </div>
                             </div>
-                            
-                            <!-- Abroad Product Images -->
                             <div class="form-group-half">
-                                <label class="section-label"><i class="fas fa-globe"></i> Export Market Images</label>
+                                <label class="section-label"><i class="fas fa-globe"></i> Export Market</label>
                                 <div class="form-group">
-                                    <label for="abroadImageFile"><i class="fas fa-upload"></i> Upload Image</label>
+                                    <label for="abroadImageFile"><i class="fas fa-upload"></i> Upload</label>
                                     <input type="file" id="abroadImageFile" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(event, 'abroad-file')">
-                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG - Max 5MB</small>
+                                    <small class="form-help"><i class="fas fa-info-circle"></i> JPG, PNG</small>
                                     <div class="image-preview" id="abroadFilePreview"></div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="abroadImageUrl"><i class="fas fa-link"></i> Or Image URL</label>
+                                    <label for="abroadImageUrl"><i class="fas fa-link"></i> Image URL</label>
                                     <input type="url" id="abroadImageUrl" placeholder="https://example.com/image.jpg" oninput="previewImageUrl('abroad-url')">
-                                    <small class="form-help"><i class="fas fa-info-circle"></i> Direct link to image file</small>
                                     <div class="image-preview" id="abroadUrlPreview"></div>
                                 </div>
                             </div>
