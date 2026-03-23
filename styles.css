@@ -1187,6 +1187,129 @@ p, span, label, td, th {
     font-size: 0.9rem;
 }
 
+/* Inventory Log Redesign */
+.inventory-log-header {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 36px 40px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-gray);
+    text-align: center;
+}
+
+.inventory-log-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.inventory-log-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.inventory-month-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
+}
+
+.inventory-month-input {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    border: 1px solid var(--border-gray);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    background: var(--light-gray);
+    outline: none;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.inventory-month-input:focus {
+    border-color: var(--gold-primary);
+    background: var(--white);
+}
+
+.inventory-export-btn {
+    margin-left: auto;
+}
+
+.inventory-log-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-gray);
+    overflow: hidden;
+}
+
+.inventory-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.inventory-log-table thead tr {
+    background: var(--white);
+    border-bottom: 2px solid var(--text-primary);
+}
+
+.inventory-log-table th {
+    padding: 14px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    text-align: center;
+    text-transform: uppercase;
+    border-right: 1px solid #d0d0d0;
+    line-height: 1.3;
+}
+
+.inventory-log-table th:last-child {
+    border-right: none;
+}
+
+.inventory-log-table td {
+    padding: 12px 12px;
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+.inventory-log-table td:last-child {
+    border-right: none;
+}
+
+.inventory-log-table tbody tr:hover {
+    background: var(--light-gray);
+}
+
+.inventory-log-table .profit-positive {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.inventory-log-table .profit-negative {
+    color: var(--danger);
+    font-weight: 600;
+}
+
 /* Pricing Section */
 .pricing-info {
     display: grid;

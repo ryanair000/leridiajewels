@@ -843,20 +843,27 @@ function renderProducts(filteredProducts = null) {
 // Render Inventory Table
 function renderInventory() {
     const tbody = document.getElementById('inventoryTable');
-    
+
     // Update inventory stats
     const inStock = products.filter(p => p.stock > 10).length;
     const lowStock = products.filter(p => p.stock > 0 && p.stock <= 10).length;
     const outOfStock = products.filter(p => p.stock === 0).length;
-    
+
     document.getElementById('invInStock').textContent = inStock;
     document.getElementById('invLowStock').textContent = lowStock;
     document.getElementById('invOutStock').textContent = outOfStock;
-    
+
+    // Set default month to current month if not set
+    const monthInput = document.getElementById('inventoryMonth');
+    if (monthInput && !monthInput.value) {
+        const now = new Date();
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
     if (products.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="8" class="empty-state">
                     <i class="fas fa-warehouse"></i>
                     <h4>No inventory items</h4>
                     <p>Add products to manage inventory</p>
@@ -865,17 +872,29 @@ function renderInventory() {
         `;
         return;
     }
-    
+
     // Sort by stock (lowest first)
     const sortedProducts = [...products].sort((a, b) => a.stock - b.stock);
-    
-    tbody.innerHTML = sortedProducts.map(product => `
+
+    tbody.innerHTML = sortedProducts.map(product => {
+        const sellingPrice = product.localSelling || 0;
+        const costPrice = product.localPrice || 0;
+        const totalProfit = (sellingPrice - costPrice) * product.stock;
+        const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
+
+        const dateStr = product.updatedAt
+            ? new Date(product.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '-';
+
+        return `
         <tr>
+            <td>${dateStr}</td>
             <td><strong>${product.name}</strong></td>
             <td>${product.sku}</td>
-            <td>${product.collection || '-'}</td>
-            <td><strong>${product.stock}</strong></td>
-            <td><span class="stock-badge ${getStockStatus(product.stock)}">${getStockLabel(product.stock)}</span></td>
+            <td>${product.stock}</td>
+            <td>KSH ${sellingPrice.toLocaleString()}</td>
+            <td>KSH ${costPrice.toLocaleString()}</td>
+            <td class="${profitClass}">KSH ${totalProfit.toLocaleString()}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Product">
@@ -890,7 +909,8 @@ function renderInventory() {
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Render Pricing Table

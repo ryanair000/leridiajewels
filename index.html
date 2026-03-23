@@ -500,13 +500,17 @@
 
             <!-- Inventory Section -->
             <section id="inventory" class="content-section">
-                <div class="section-header">
-                    <h2>Inventory Management</h2>
-                    <button class="btn-secondary" onclick="exportInventory()">
-                        <i class="fas fa-download"></i> Export
-                    </button>
+                <div class="inventory-log-header">
+                    <h1 class="inventory-log-title">INVENTORY LOG</h1>
+                    <div class="inventory-log-meta">
+                        <span class="inventory-month-label">MONTH -</span>
+                        <input type="month" id="inventoryMonth" class="inventory-month-input" onchange="renderInventory()">
+                        <button class="btn-secondary inventory-export-btn" onclick="exportInventory()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
                 </div>
-                
+
                 <div class="inventory-summary">
                     <div class="inventory-card in-stock">
                         <i class="fas fa-check-circle"></i>
@@ -530,18 +534,20 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="card">
-                    <div class="card-body">
-                        <table class="data-table full-table">
+
+                <div class="inventory-log-card">
+                    <div class="table-responsive">
+                        <table class="inventory-log-table">
                             <thead>
                                 <tr>
-                                    <th>Product Name</th>
+                                    <th>DATE</th>
+                                    <th>PRODUCT NAME</th>
                                     <th>SKU</th>
-                                    <th>Collection</th>
-                                    <th>Quantity (pcs)</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>QUANTITY</th>
+                                    <th>SELLING<br>PRICE</th>
+                                    <th>COST<br>PRICE</th>
+                                    <th>TOTAL<br>PROFIT</th>
+                                    <th>ACTIONS</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTable">
