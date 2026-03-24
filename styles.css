@@ -115,6 +115,109 @@ p, span, label, td, th {
     min-height: 100vh;
 }
 
+body.auth-locked {
+    background:
+        radial-gradient(circle at top left, rgba(232, 137, 157, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(196, 99, 122, 0.16), transparent 30%),
+        var(--off-white);
+}
+
+body.auth-locked > .mobile-menu-toggle,
+body.auth-locked > .sidebar-overlay,
+body.auth-locked > .app-container {
+    display: none;
+}
+
+.auth-screen {
+    min-height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 18px;
+}
+
+body.auth-locked .auth-screen {
+    display: flex;
+}
+
+.auth-card {
+    width: min(100%, 460px);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(196, 99, 122, 0.15);
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(45, 42, 43, 0.12);
+    padding: 32px 28px;
+    backdrop-filter: blur(12px);
+}
+
+.auth-card-brand {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.auth-logo {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 16px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gold-gradient);
+    color: var(--white);
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-gold);
+}
+
+.auth-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--gold-dark);
+    margin-bottom: 8px;
+}
+
+.auth-card-brand h1 {
+    font-size: 2.1rem;
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    max-width: 34ch;
+    margin: 0 auto;
+}
+
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-submit {
+    width: 100%;
+    justify-content: center;
+}
+
+.auth-help {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.auth-help.error {
+    background: #FDECEA;
+    color: var(--danger);
+}
+
+.auth-help.success {
+    background: #E8F5E9;
+    color: var(--success);
+}
+
 /* =============================================
    Sidebar Styles
    ============================================= */
@@ -312,6 +415,10 @@ p, span, label, td, th {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+body.auth-locked #signOutButton {
+    display: none;
 }
 
 .btn-icon {

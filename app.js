@@ -59,6 +59,11 @@ let db = null;
 // Connection status
 let isOnline = false;
 
+// Auth/session state
+let currentUser = null;
+let appInitialized = false;
+let authUiInitialized = false;
+
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -81,44 +86,245 @@ async function initializeApp() {
         return;
     }
     
-    setupNavigation();
-    setupFilters();
-    populateCategoryFilter();
-    setupSearch();
-    
-    // Load products from Supabase
-    await loadProducts();
-    
-    updateDashboard();
-    renderProducts();
-    renderInventory();
-    renderPricing();
-    initializeCharts();
-    
-    // Update connection status indicator
+    setupAuthUi();
     updateConnectionStatus();
+
+    const { data, error } = await db.auth.getSession();
+    if (error) {
+        console.error('Failed to restore Supabase session:', error);
+        showAuthMessage('Session could not be restored. Please sign in again.', 'error');
+    }
+
+    await handleAuthStateChange(data?.session || null, { silent: true });
+
+    db.auth.onAuthStateChange((event, session) => {
+        if (event === 'INITIAL_SESSION') return;
+        handleAuthStateChange(session, { event });
+    });
 }
 
 // Update Connection Status UI
 function updateConnectionStatus() {
     const statusIndicator = document.querySelector('.connection-status');
     if (statusIndicator) {
-        if (isOnline) {
-            statusIndicator.innerHTML = '<i class="fas fa-cloud"></i> Cloud Sync';
+        if (!isOnline) {
+            statusIndicator.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Database Offline';
+            statusIndicator.classList.add('offline');
+            statusIndicator.classList.remove('online');
+        } else if (currentUser) {
+            statusIndicator.innerHTML = '<i class="fas fa-shield-heart"></i> Cloud Protected';
             statusIndicator.classList.add('online');
             statusIndicator.classList.remove('offline');
         } else {
-            statusIndicator.innerHTML = '<i class="fas fa-database"></i> Local Storage';
+            statusIndicator.innerHTML = '<i class="fas fa-user-lock"></i> Sign In Required';
             statusIndicator.classList.add('offline');
             statusIndicator.classList.remove('online');
         }
     }
 }
 
+function setupAuthUi() {
+    if (authUiInitialized) return;
+
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', signInAdmin);
+    }
+
+    authUiInitialized = true;
+}
+
+async function handleAuthStateChange(session, { event = null, silent = false } = {}) {
+    const previousUser = currentUser;
+    currentUser = session?.user || null;
+
+    updateAuthUi();
+    updateConnectionStatus();
+    toggleAppLock(!currentUser);
+
+    if (!currentUser) {
+        showAuthMessage('Anonymous access is blocked. Only approved admin accounts can read or change products.');
+        products = [];
+        if (appInitialized) {
+            refreshAllViews();
+        }
+
+        if (!silent && previousUser) {
+            showToast('Signed out successfully.', 'info');
+        }
+        return;
+    }
+
+    if (!appInitialized) {
+        setupNavigation();
+        setupFilters();
+        populateCategoryFilter();
+        setupSearch();
+        initializeCharts();
+        appInitialized = true;
+    }
+
+    await refreshProductsFromCloud(false);
+
+    if (!silent && event === 'SIGNED_IN') {
+        showToast('Signed in successfully.', 'success');
+    }
+}
+
+function updateAuthUi() {
+    const userLabel = document.getElementById('currentUserLabel');
+    const avatar = document.querySelector('.user-profile .avatar');
+    const signOutButton = document.getElementById('signOutButton');
+
+    if (userLabel) {
+        userLabel.textContent = currentUser?.email || 'Admin';
+    }
+
+    if (avatar) {
+        avatar.textContent = getUserInitials(currentUser?.email || 'Leridia Jewels');
+    }
+
+    if (signOutButton) {
+        signOutButton.disabled = !currentUser;
+    }
+}
+
+function toggleAppLock(locked) {
+    document.body.classList.toggle('auth-locked', locked);
+
+    if (locked) {
+        closeModal();
+        closeStockModal();
+    }
+}
+
+function getUserInitials(value) {
+    const cleaned = String(value || '')
+        .replace(/@.*$/, '')
+        .replace(/[^a-zA-Z0-9]+/g, ' ')
+        .trim();
+
+    if (!cleaned) return 'LJ';
+
+    const parts = cleaned.split(/\s+/).slice(0, 2);
+    return parts.map(part => part[0].toUpperCase()).join('');
+}
+
+function showAuthMessage(message, type = 'info') {
+    const helpText = document.getElementById('authHelpText');
+    if (!helpText) return;
+
+    helpText.textContent = message;
+    helpText.classList.remove('error', 'success');
+
+    if (type === 'error' || type === 'success') {
+        helpText.classList.add(type);
+    }
+}
+
+function refreshAllViews() {
+    updateDashboard();
+    renderProducts();
+    renderInventory();
+    renderPricing();
+}
+
+async function refreshProductsFromCloud(showSuccessToast = false) {
+    await loadProducts();
+    refreshAllViews();
+
+    if (showSuccessToast) {
+        showToast('Sync complete!', 'success');
+    }
+}
+
+function getFriendlySupabaseError(error, fallbackMessage) {
+    const rawMessage = error?.message || '';
+    const message = rawMessage.toLowerCase();
+
+    if (
+        error?.code === '42501' ||
+        message.includes('row-level security') ||
+        message.includes('permission denied')
+    ) {
+        return 'This account is signed in, but it is not approved for inventory access yet.';
+    }
+
+    if (message.includes('column') && message.includes('does not exist')) {
+        return 'Your Supabase table is missing required columns. Run the updated supabase-setup.sql script once.';
+    }
+
+    if (message.includes('invalid login credentials')) {
+        return 'Invalid email or password.';
+    }
+
+    return rawMessage || fallbackMessage;
+}
+
+async function signInAdmin(event) {
+    event.preventDefault();
+
+    if (!db) {
+        showAuthMessage('Database connection is unavailable right now.', 'error');
+        return;
+    }
+
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    const loginButton = document.getElementById('loginButton');
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    loginButton.disabled = true;
+    loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In';
+    showAuthMessage('Checking your admin access...');
+
+    const { error } = await db.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    loginButton.disabled = false;
+    loginButton.innerHTML = '<i class="fas fa-right-to-bracket"></i> Sign In';
+
+    if (error) {
+        const message = getFriendlySupabaseError(error, 'Unable to sign in.');
+        showAuthMessage(message, 'error');
+        showToast(message, 'error');
+        passwordInput.focus();
+        passwordInput.select();
+        return;
+    }
+
+    document.getElementById('loginForm').reset();
+    showAuthMessage('Access granted. Opening your inventory now.', 'success');
+}
+
+async function signOutAdmin() {
+    if (!db) return;
+
+    const { error } = await db.auth.signOut();
+    if (error) {
+        const message = getFriendlySupabaseError(error, 'Unable to sign out.');
+        showToast(message, 'error');
+    }
+}
+
+function ensureAuthenticated(actionText = 'access the inventory') {
+    if (!isOnline || !db) {
+        throw new Error('Database connection is unavailable right now.');
+    }
+
+    if (!currentUser) {
+        throw new Error(`Please sign in to ${actionText}.`);
+    }
+}
+
 // Load Products from Supabase
 async function loadProducts() {
-    if (!isOnline || !db) {
-        console.error('No database connection');
+    if (!isOnline || !db || !currentUser) {
+        products = [];
         return;
     }
     
@@ -126,11 +332,12 @@ async function loadProducts() {
         const { data, error } = await db
             .from('products')
             .select('*')
+            .is('deleted_at', null)
             .order('created_at', { ascending: false });
         
         if (error) {
             console.error('Supabase error:', error);
-            showToast('Error loading products: ' + error.message, 'error');
+            showToast('Error loading products: ' + getFriendlySupabaseError(error, 'Unable to load products.'), 'error');
             products = [];
         } else {
             products = data.map(transformFromDb) || [];
@@ -138,29 +345,113 @@ async function loadProducts() {
         }
     } catch (err) {
         console.error('Failed to load from Supabase:', err);
-        showToast('Failed to load products', 'error');
+        showToast(getFriendlySupabaseError(err, 'Failed to load products.'), 'error');
         products = [];
     }
 }
 
 // Transform database record to app format
+function toNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toInteger(value, fallback = 0) {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function formatCurrency(value) {
+    return `KSH ${toNumber(value).toFixed(2)}`;
+}
+
+function formatPercent(value) {
+    return `${toNumber(value).toFixed(1)}%`;
+}
+
+function formatDateDisplay(value) {
+    if (!value) return '-';
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return String(value);
+    }
+
+    return parsed.toISOString().split('T')[0];
+}
+
+function calculateInventoryMetrics({
+    buyingPrice = 0,
+    sellingPrice = 0,
+    quantityBought = 0,
+    totalNumberInStock = 0,
+    totalStocksLeft = 0
+}) {
+    const safeBuyingPrice = toNumber(buyingPrice);
+    const safeSellingPrice = toNumber(sellingPrice);
+    const safeQuantityBought = Math.max(0, toInteger(quantityBought));
+    const safeTotalNumberInStock = Math.max(0, toInteger(totalNumberInStock, safeQuantityBought));
+    const safeTotalStocksLeft = Math.max(0, toInteger(totalStocksLeft, safeTotalNumberInStock));
+    const profitMargin = safeBuyingPrice > 0
+        ? ((safeSellingPrice - safeBuyingPrice) / safeBuyingPrice) * 100
+        : 0;
+    const totalAmount = safeBuyingPrice * safeQuantityBought;
+
+    return {
+        buyingPrice: safeBuyingPrice,
+        sellingPrice: safeSellingPrice,
+        quantityBought: safeQuantityBought,
+        totalNumberInStock: safeTotalNumberInStock,
+        totalStocksLeft: safeTotalStocksLeft,
+        profitMargin,
+        totalAmount
+    };
+}
+
 function transformFromDb(record) {
+    const inventoryItemCode = record.inventory_item_code || record.sku;
+    const jewelryType = record.jewelry_type || record.category || record.collection || record.type || record.chains || '';
+    const buyingPrice = toNumber(record.buying_price, toNumber(record.local_price));
+    const sellingPrice = toNumber(record.selling_price, toNumber(record.local_selling, toNumber(record.abroad_selling)));
+    const estimatedPrice = toNumber(record.estimated_price, toNumber(record.abroad_price, sellingPrice));
+    const metrics = calculateInventoryMetrics({
+        buyingPrice,
+        sellingPrice,
+        quantityBought: record.quantity_bought ?? record.stock,
+        totalNumberInStock: record.total_number_in_stock ?? record.stock,
+        totalStocksLeft: record.total_stocks_left ?? record.stock
+    });
+
     return {
         id: record.id,
         name: record.name,
-        sku: record.sku,
-        collection: record.collection,
-        chains: record.chains,
+        sku: inventoryItemCode,
+        inventoryItemCode,
+        purchaseDate: record.purchase_date || null,
+        jewelryType,
+        description: record.description || '',
+        collection: record.collection || record.category,
+        chains: record.chains || record.type,
+        category: jewelryType || record.collection || record.category,
+        type: record.chains || record.type || jewelryType,
         materials: record.materials,
         addons: record.addons,
         size: record.size,
         quality: record.quality,
-        stock: record.stock,
+        stock: metrics.totalStocksLeft,
+        totalNumberInStock: metrics.totalNumberInStock,
+        quantityBought: metrics.quantityBought,
+        totalStocksLeft: metrics.totalStocksLeft,
         weightGrams: record.weight_grams,
-        localPrice: record.local_price,
-        localSelling: record.local_selling,
-        abroadPrice: record.abroad_price,
-        abroadSelling: record.abroad_selling,
+        estimatedPrice,
+        buyingPrice,
+        sellingPrice,
+        profitMargin: toNumber(record.profit_margin, metrics.profitMargin),
+        totalAmount: toNumber(record.total_amount, metrics.totalAmount),
+        localPrice: toNumber(record.local_price, buyingPrice),
+        localSelling: toNumber(record.local_selling, sellingPrice),
+        abroadPrice: toNumber(record.abroad_price, estimatedPrice),
+        abroadSelling: toNumber(record.abroad_selling, sellingPrice),
         localImageFile: record.local_image_file,
         localImageUrl: record.local_image_url,
         abroadImageFile: record.abroad_image_file,
@@ -169,6 +460,8 @@ function transformFromDb(record) {
         collectionImage: record.collection_image,
         materialImage: record.material_image,
         addonImage: record.addon_image,
+        deletedAt: record.deleted_at,
+        deletedByEmail: record.deleted_by_email,
         createdAt: record.created_at,
         updatedAt: record.updated_at
     };
@@ -176,21 +469,44 @@ function transformFromDb(record) {
 
 // Transform app format to database record
 function transformToDb(product) {
+    const inventoryItemCode = product.inventoryItemCode || product.sku || generateSKU(product.collection, product.chains);
+    const jewelryType = product.jewelryType || product.category || product.collection || null;
+    const estimatedPrice = toNumber(product.estimatedPrice, toNumber(product.abroadPrice, toNumber(product.sellingPrice)));
+    const metrics = calculateInventoryMetrics({
+        buyingPrice: product.buyingPrice ?? product.localPrice,
+        sellingPrice: product.sellingPrice ?? product.localSelling,
+        quantityBought: product.quantityBought,
+        totalNumberInStock: product.totalNumberInStock,
+        totalStocksLeft: product.totalStocksLeft ?? product.stock
+    });
+
     return {
         name: product.name,
-        sku: product.sku,
-        collection: product.collection,
-        chains: product.chains || null,
+        sku: inventoryItemCode,
+        inventory_item_code: inventoryItemCode,
+        purchase_date: product.purchaseDate || null,
+        jewelry_type: jewelryType,
+        description: product.description || null,
+        collection: product.collection || product.category,
+        chains: product.chains || product.type || null,
         materials: product.materials || null,
         addons: product.addons || null,
         size: product.size || null,
         quality: product.quality || null,
-        stock: product.stock,
+        stock: metrics.totalStocksLeft,
+        estimated_price: estimatedPrice,
+        buying_price: metrics.buyingPrice,
+        selling_price: metrics.sellingPrice,
+        profit_margin: metrics.profitMargin,
+        total_number_in_stock: metrics.totalNumberInStock,
+        quantity_bought: metrics.quantityBought,
+        total_amount: metrics.totalAmount,
+        total_stocks_left: metrics.totalStocksLeft,
         weight_grams: product.weightGrams || null,
-        local_price: product.localPrice,
-        local_selling: product.localSelling,
-        abroad_price: product.abroadPrice,
-        abroad_selling: product.abroadSelling,
+        local_price: metrics.buyingPrice,
+        local_selling: metrics.sellingPrice,
+        abroad_price: estimatedPrice,
+        abroad_selling: metrics.sellingPrice,
         local_image_file: product.localImageFile || null,
         local_image_url: product.localImageUrl || null,
         abroad_image_file: product.abroadImageFile || null,
@@ -204,55 +520,48 @@ function transformToDb(product) {
 
 // Save Product to Supabase
 async function saveToSupabase(product, isUpdate = false) {
-    if (!isOnline || !db) return false;
+    ensureAuthenticated('save products');
     
-    try {
-        const dbRecord = transformToDb(product);
-        
-        if (isUpdate) {
-            const { error } = await db
-                .from('products')
-                .update(dbRecord)
-                .eq('id', product.id);
-            
-            if (error) throw error;
-        } else {
-            const { data, error } = await db
-                .from('products')
-                .insert(dbRecord)
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            // Update product with database-generated ID
-            if (data) {
-                product.id = data.id;
-            }
-        }
-        return true;
-    } catch (err) {
-        console.error('Supabase save error:', err);
-        return false;
+    const dbRecord = transformToDb(product);
+
+    if (isUpdate) {
+        const { data, error } = await db
+            .from('products')
+            .update(dbRecord)
+            .eq('id', product.id)
+            .is('deleted_at', null)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return transformFromDb(data);
     }
+
+    const { data, error } = await db
+        .from('products')
+        .insert(dbRecord)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return transformFromDb(data);
 }
 
-// Delete from Supabase
-async function deleteFromSupabase(productId) {
-    if (!isOnline || !db) return false;
-    
-    try {
-        const { error } = await db
-            .from('products')
-            .delete()
-            .eq('id', productId);
-        
-        if (error) throw error;
-        return true;
-    } catch (err) {
-        console.error('Supabase delete error:', err);
-        return false;
-    }
+// Archive product in Supabase instead of permanently deleting it
+async function archiveInSupabase(productId) {
+    ensureAuthenticated('archive products');
+
+    const { error } = await db
+        .from('products')
+        .update({
+            deleted_at: new Date().toISOString(),
+            deleted_by_email: currentUser?.email || null
+        })
+        .eq('id', productId)
+        .is('deleted_at', null);
+
+    if (error) throw error;
+    return true;
 }
 
 // Navigation Setup
@@ -377,6 +686,43 @@ function addCustomMaterial(value) {
     if (value === undefined) input.value = '';
 }
 
+function updateInventoryCalculations() {
+    const metrics = calculateInventoryMetrics({
+        buyingPrice: document.getElementById('buyingPrice')?.value,
+        sellingPrice: document.getElementById('sellingPrice')?.value,
+        quantityBought: document.getElementById('quantityBought')?.value,
+        totalNumberInStock: document.getElementById('totalNumberInStock')?.value,
+        totalStocksLeft: document.getElementById('productStock')?.value
+    });
+
+    const profitMarginInput = document.getElementById('profitMargin');
+    const totalAmountInput = document.getElementById('totalAmount');
+    const profitMarginDisplay = document.getElementById('profitMarginDisplay');
+    const totalAmountDisplay = document.getElementById('totalAmountDisplay');
+
+    if (profitMarginInput) {
+        profitMarginInput.value = metrics.profitMargin.toFixed(2);
+    }
+
+    if (totalAmountInput) {
+        totalAmountInput.value = metrics.totalAmount.toFixed(2);
+    }
+
+    if (profitMarginDisplay) {
+        const tone = metrics.profitMargin > 0 ? 'Profit' : metrics.profitMargin < 0 ? 'Loss' : 'Profit margin';
+        profitMarginDisplay.innerHTML = `<i class="fas fa-chart-line"></i> ${tone}: ${metrics.profitMargin.toFixed(1)}%`;
+        profitMarginDisplay.style.color = metrics.profitMargin > 0
+            ? '#4CAF50'
+            : metrics.profitMargin < 0
+                ? '#F44336'
+                : '#9B9B9B';
+    }
+
+    if (totalAmountDisplay) {
+        totalAmountDisplay.innerHTML = `<i class="fas fa-calculator"></i> Total amount: ${formatCurrency(metrics.totalAmount)}`;
+    }
+}
+
 // Open Add Product Modal
 function openAddProductModal() {
     document.getElementById('modalTitle').textContent = 'Add New Product';
@@ -394,6 +740,17 @@ function openAddProductModal() {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '';
     });
+
+    document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('inventoryItemCode').value = '';
+    document.getElementById('productDescription').value = '';
+    document.getElementById('totalNumberInStock').value = '0';
+    document.getElementById('quantityBought').value = '0';
+    document.getElementById('productStock').value = '0';
+    document.getElementById('estimatedPrice').value = '0';
+    document.getElementById('buyingPrice').value = '0';
+    document.getElementById('sellingPrice').value = '0';
+    updateInventoryCalculations();
     
     document.getElementById('productModal').classList.add('active');
 }
@@ -406,9 +763,14 @@ function openEditProductModal(productId) {
     document.getElementById('modalTitle').textContent = 'Edit Product';
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.name;
-    document.getElementById('productSKU').value = product.sku;
+    document.getElementById('productSKU').value = product.inventoryItemCode || product.sku;
+    document.getElementById('inventoryItemCode').value = product.inventoryItemCode || product.sku || '';
+    document.getElementById('purchaseDate').value = product.purchaseDate || '';
+    document.getElementById('jewelryType').value = product.jewelryType || '';
+    document.getElementById('productDescription').value = product.description || '';
     document.getElementById('productCollection').value = product.collection || '';
     document.getElementById('productChains').value = product.chains || '';
+    document.getElementById('customChain').value = product.chains || '';
     document.getElementById('productAddons').value = product.addons || '';
     
     // Set materials: restore predefined checkboxes + re-create custom tags
@@ -429,12 +791,15 @@ function openEditProductModal(productId) {
     
     document.getElementById('productSize').value = product.size || '';
     document.getElementById('productQuality').value = product.quality || '';
-    document.getElementById('productStock').value = product.stock;
+    document.getElementById('totalNumberInStock').value = product.totalNumberInStock || 0;
+    document.getElementById('quantityBought').value = product.quantityBought || 0;
+    document.getElementById('productStock').value = product.totalStocksLeft || product.stock || 0;
     document.getElementById('productWeight').value = product.weightGrams || '';
-    document.getElementById('localPrice').value = product.localPrice;
-    document.getElementById('localSelling').value = product.localSelling;
-    document.getElementById('abroadPrice').value = product.abroadPrice;
-    document.getElementById('abroadSelling').value = product.abroadSelling;
+    document.getElementById('estimatedPrice').value = product.estimatedPrice || 0;
+    document.getElementById('buyingPrice').value = product.buyingPrice || 0;
+    document.getElementById('sellingPrice').value = product.sellingPrice || 0;
+    document.getElementById('profitMargin').value = toNumber(product.profitMargin).toFixed(2);
+    document.getElementById('totalAmount').value = toNumber(product.totalAmount).toFixed(2);
     document.getElementById('localImageUrl').value = product.localImageUrl || '';
     document.getElementById('abroadImageUrl').value = product.abroadImageUrl || '';
     
@@ -450,6 +815,8 @@ function openEditProductModal(productId) {
     setPreview('collectionPreview', product.collectionImage, 'Collection');
     setPreview('materialPreview', product.materialImage, 'Material');
     setPreview('addonPreview', product.addonImage, 'Add-on');
+
+    updateInventoryCalculations();
     
     document.getElementById('productModal').classList.add('active');
 }
@@ -475,19 +842,11 @@ async function saveProduct(e) {
         return;
     }
     
-    // Validate pricing
-    const localPrice = parseFloat(document.getElementById('localPrice').value) || 0;
-    const localSelling = parseFloat(document.getElementById('localSelling').value) || 0;
-    const abroadPrice = parseFloat(document.getElementById('abroadPrice').value) || 0;
-    const abroadSelling = parseFloat(document.getElementById('abroadSelling').value) || 0;
-    
-    if (localSelling < localPrice) {
-        const confirmed = confirm('⚠️ Local selling price is lower than cost price. This will result in a loss. Continue anyway?');
-        if (!confirmed) return;
-    }
-    
-    if (abroadSelling < abroadPrice) {
-        const confirmed = confirm('⚠️ Abroad selling price is lower than cost price. This will result in a loss. Continue anyway?');
+    const buyingPrice = toNumber(document.getElementById('buyingPrice').value);
+    const sellingPrice = toNumber(document.getElementById('sellingPrice').value);
+
+    if (sellingPrice < buyingPrice) {
+        const confirmed = confirm('⚠️ Selling price is lower than buying price. This will result in a loss. Continue anyway?');
         if (!confirmed) return;
     }
     
@@ -498,6 +857,22 @@ async function saveProduct(e) {
     const chainSelect = document.getElementById('productChains').value;
     const customChain = document.getElementById('customChain').value;
     const chains = chainSelect || customChain || '';
+    const inventoryItemCode = document.getElementById('inventoryItemCode').value.trim() || document.getElementById('productSKU').value || generateSKU(collection, chains);
+    const jewelryType = document.getElementById('jewelryType').value.trim();
+    const estimatedPrice = toNumber(document.getElementById('estimatedPrice').value);
+    const quantityBought = toInteger(document.getElementById('quantityBought').value, 0);
+    const totalNumberInStock = toInteger(document.getElementById('totalNumberInStock').value, quantityBought);
+    const totalStocksLeft = toInteger(document.getElementById('productStock').value, totalNumberInStock);
+    const inventoryMetrics = calculateInventoryMetrics({
+        buyingPrice,
+        sellingPrice,
+        quantityBought,
+        totalNumberInStock,
+        totalStocksLeft
+    });
+    document.getElementById('inventoryItemCode').value = inventoryItemCode;
+    document.getElementById('productSKU').value = inventoryItemCode;
+    updateInventoryCalculations();
     
     // Get materials value (from hidden field updated by updateMaterials)
     const materials = document.getElementById('productMaterials').value;
@@ -544,19 +919,33 @@ async function saveProduct(e) {
     const productData = {
         id: productId || null,
         name: document.getElementById('productName').value,
-        sku: document.getElementById('productSKU').value || generateSKU(collection, chains),
+        sku: inventoryItemCode,
+        inventoryItemCode: inventoryItemCode,
+        purchaseDate: document.getElementById('purchaseDate').value || null,
+        jewelryType: jewelryType,
+        description: document.getElementById('productDescription').value.trim(),
         collection: collection,
         chains: chains,
+        category: jewelryType || collection,
+        type: chains || jewelryType,
         materials: materials,
         addons: document.getElementById('productAddons').value,
         size: document.getElementById('productSize').value,
         quality: document.getElementById('productQuality').value,
-        stock: parseInt(document.getElementById('productStock').value) || 0,
+        stock: inventoryMetrics.totalStocksLeft,
+        totalNumberInStock: inventoryMetrics.totalNumberInStock,
+        quantityBought: inventoryMetrics.quantityBought,
+        totalStocksLeft: inventoryMetrics.totalStocksLeft,
         weightGrams: parseFloat(document.getElementById('productWeight').value) || null,
-        localPrice: parseFloat(document.getElementById('localPrice').value) || 0,
-        localSelling: parseFloat(document.getElementById('localSelling').value) || 0,
-        abroadPrice: parseFloat(document.getElementById('abroadPrice').value) || 0,
-        abroadSelling: parseFloat(document.getElementById('abroadSelling').value) || 0,
+        estimatedPrice: estimatedPrice,
+        buyingPrice: inventoryMetrics.buyingPrice,
+        sellingPrice: inventoryMetrics.sellingPrice,
+        profitMargin: inventoryMetrics.profitMargin,
+        totalAmount: inventoryMetrics.totalAmount,
+        localPrice: inventoryMetrics.buyingPrice,
+        localSelling: inventoryMetrics.sellingPrice,
+        abroadPrice: estimatedPrice,
+        abroadSelling: inventoryMetrics.sellingPrice,
         localImageFile: localImageFileData,
         localImageUrl: document.getElementById('localImageUrl').value || null,
         abroadImageFile: abroadImageFileData,
@@ -572,38 +961,25 @@ async function saveProduct(e) {
     // Show loading state
     showToast('💾 Saving product...', 'info');
     
-    if (productId) {
-        // Update existing product
-        productData.id = productId;
-        const savedToCloud = await saveToSupabase(productData, true);
-        
-        const index = products.findIndex(p => p.id == productId);
-        if (index !== -1) {
-            products[index] = productData;
-        }
-        
-        if (savedToCloud) {
+    try {
+        if (productId) {
+            productData.id = productId;
+            const savedProduct = await saveToSupabase(productData, true);
+
+            const index = products.findIndex(p => p.id == productId);
+            if (index !== -1) {
+                products[index] = savedProduct;
+            }
+
+            closeModal();
+            refreshAllViews();
             showToast('✅ Product updated successfully!', 'success');
-        } else {
-            showToast('⚠️ Product updated but sync failed', 'warning');
+            return;
         }
-    } else {
-        // Add new product
-        const savedToCloud = await saveToSupabase(productData, false);
-        
-        if (!savedToCloud && !productData.id) {
-            productData.id = Date.now().toString();
-        }
-        
-        products.unshift(productData);
-        
-        if (savedToCloud) {
-            showToast('✅ Product added successfully!', 'success');
-        } else {
-            showToast('⚠️ Product added but sync failed', 'warning');
-        }
-        
-        // Reset form for next product
+
+        const savedProduct = await saveToSupabase(productData, false);
+        products.unshift(savedProduct);
+
         document.getElementById('productForm').reset();
         document.getElementById('productId').value = '';
         document.getElementById('modalTitle').textContent = 'Add New Product';
@@ -614,40 +990,39 @@ async function saveProduct(e) {
             const el = document.getElementById(id);
             if (el) el.innerHTML = '';
         });
+        document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
+        updateInventoryCalculations();
+
+        refreshAllViews();
+        showToast('✅ Product added successfully!', 'success');
+    } catch (err) {
+        console.error('Failed to save product:', err);
+        showToast(getFriendlySupabaseError(err, 'Failed to save product.'), 'error');
     }
-    
-    // Only close modal if editing (not adding new)
-    if (productId) {
-        closeModal();
-    }
-    
-    updateDashboard();
-    renderProducts();
-    renderInventory();
-    renderPricing();
 }
 
 // Delete Product
-async function deleteProduct(productId) {
+async function deleteProduct(productId, skipConfirm = false) {
     const product = products.find(p => p.id == productId);
     const productName = product ? product.name : 'this product';
     
-    if (confirm(`🗑️ Are you sure you want to delete "${productName}"?\n\nThis action cannot be undone.`)) {
-        showToast('🗑️ Deleting product...', 'info');
-        
-        // Delete from Supabase
-        const deleted = await deleteFromSupabase(productId);
-        
-        if (!deleted) {
-            showToast('Failed to delete from cloud', 'error');
-        }
-        
+    if (!skipConfirm) {
+        const confirmed = confirm(`🗑️ Are you sure you want to archive "${productName}"?\n\nIt will be removed from the active inventory but kept recoverable in Supabase.`);
+        if (!confirmed) return false;
+    }
+
+    showToast('🗂️ Archiving product...', 'info');
+
+    try {
+        await archiveInSupabase(productId);
         products = products.filter(p => p.id != productId);
-        updateDashboard();
-        renderProducts();
-        renderInventory();
-        renderPricing();
-        showToast('Product deleted successfully!', 'success');
+        refreshAllViews();
+        showToast('Product archived successfully!', 'success');
+        return true;
+    } catch (err) {
+        console.error('Failed to archive product:', err);
+        showToast(getFriendlySupabaseError(err, 'Failed to archive product.'), 'error');
+        return false;
     }
 }
 
@@ -658,7 +1033,7 @@ function openStockModal(productId) {
     
     document.getElementById('stockProductId').value = product.id;
     document.getElementById('stockProductName').textContent = product.name;
-    document.getElementById('newStock').value = product.stock;
+    document.getElementById('newStock').value = product.totalStocksLeft || product.stock || 0;
     document.getElementById('stockModal').classList.add('active');
 }
 
@@ -676,23 +1051,28 @@ async function updateStock(e) {
     
     const product = products.find(p => p.id == productId);
     if (product) {
-        product.stock = newStock;
-        product.updatedAt = new Date().toISOString();
-        
-        // Update in Supabase
-        const saved = await saveToSupabase(product, true);
-        
-        updateDashboard();
-        renderProducts();
-        renderInventory();
-        if (saved) {
+        const updatedProduct = {
+            ...product,
+            stock: newStock,
+            totalStocksLeft: newStock,
+            updatedAt: new Date().toISOString()
+        };
+
+        try {
+            const savedProduct = await saveToSupabase(updatedProduct, true);
+            const index = products.findIndex(p => p.id == productId);
+            if (index !== -1) {
+                products[index] = savedProduct;
+            }
+
+            refreshAllViews();
             showToast('Stock updated successfully!', 'success');
-        } else {
-            showToast('Stock updated locally but sync failed', 'warning');
+            closeStockModal();
+        } catch (err) {
+            console.error('Failed to update stock:', err);
+            showToast(getFriendlySupabaseError(err, 'Failed to update stock.'), 'error');
         }
     }
-    
-    closeStockModal();
 }
 
 // Update Dashboard
@@ -726,7 +1106,7 @@ function renderRecentProducts() {
     if (recentProducts.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="8" class="empty-state">
                     <i class="fas fa-box-open"></i>
                     <p>No products yet</p>
                 </td>
@@ -744,10 +1124,11 @@ function renderRecentProducts() {
                 </div>
             </td>
             <td><strong>${product.name}</strong></td>
-            <td>${product.collection || '-'}</td>
-            <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
-            <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
-            <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
+            <td>${product.inventoryItemCode || product.sku || '-'}</td>
+            <td>${product.jewelryType || product.collection || '-'}</td>
+            <td><span class="stock-badge ${getStockStatus(product.totalStocksLeft || product.stock)}">${product.totalStocksLeft || product.stock}</span></td>
+            <td class="price">${formatCurrency(product.sellingPrice)}</td>
+            <td class="${toNumber(product.profitMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${formatPercent(product.profitMargin)}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit">
@@ -793,7 +1174,7 @@ function renderProducts(filteredProducts = null) {
     if (productList.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="14" class="empty-state">
+                <td colspan="12" class="empty-state">
                     <div class="empty-state-icon">
                         <i class="fas fa-box-open"></i>
                     </div>
@@ -815,17 +1196,15 @@ function renderProducts(filteredProducts = null) {
                        onchange="toggleProductSelection(this, '${product.id}')">
             </td>
             <td><div class="product-image viewable"><img src="${getProductImage(product)}" alt="${product.name}" title="Click to enlarge"><span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span></div></td>
-            <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.sku}</small></td>
-            <td>${product.collection || '-'}</td>
-            <td>${product.materials || '-'}</td>
-            <td class="column-hideable">${product.chains || '-'}</td>
-            <td class="column-hideable">${product.quality || '-'}</td>
-            <td class="column-hideable">${product.weightGrams ? product.weightGrams + 'g' : '-'}</td>
-            <td><span class="stock-badge ${getStockStatus(product.stock)}">${product.stock}</span></td>
-            <td class="column-hideable price">KSH ${product.localPrice.toFixed(2)}</td>
-            <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
-            <td class="column-hideable price">KSH ${product.abroadPrice.toFixed(2)}</td>
-            <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
+            <td><strong>${product.name}</strong><br><small style="color: #9B9B9B;">${product.description || 'No description'}</small></td>
+            <td>${product.inventoryItemCode || product.sku || '-'}</td>
+            <td>${product.jewelryType || product.collection || '-'}</td>
+            <td class="column-hideable">${formatDateDisplay(product.purchaseDate)}</td>
+            <td class="column-hideable">${product.size || '-'}</td>
+            <td><span class="stock-badge ${getStockStatus(product.totalStocksLeft || product.stock)}">${product.totalStocksLeft || product.stock}</span></td>
+            <td class="column-hideable price">${formatCurrency(product.buyingPrice)}</td>
+            <td class="price">${formatCurrency(product.sellingPrice)}</td>
+            <td class="column-hideable ${toNumber(product.profitMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${formatPercent(product.profitMargin)}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit">
@@ -856,7 +1235,7 @@ function renderInventory() {
     if (products.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="14" class="empty-state">
                     <i class="fas fa-warehouse"></i>
                     <h4>No inventory items</h4>
                     <p>Add products to manage inventory</p>
@@ -871,11 +1250,19 @@ function renderInventory() {
     
     tbody.innerHTML = sortedProducts.map(product => `
         <tr>
-            <td><strong>${product.name}</strong></td>
-            <td>${product.sku}</td>
-            <td>${product.collection || '-'}</td>
-            <td><strong>${product.stock}</strong></td>
-            <td><span class="stock-badge ${getStockStatus(product.stock)}">${getStockLabel(product.stock)}</span></td>
+            <td>${product.inventoryItemCode || product.sku || '-'}</td>
+            <td>${formatDateDisplay(product.purchaseDate)}</td>
+            <td>${product.jewelryType || product.collection || '-'}</td>
+            <td>${product.description || product.name || '-'}</td>
+            <td>${product.size || '-'}</td>
+            <td class="price">${formatCurrency(product.estimatedPrice)}</td>
+            <td class="price">${formatCurrency(product.buyingPrice)}</td>
+            <td class="price">${formatCurrency(product.sellingPrice)}</td>
+            <td class="${toNumber(product.profitMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${formatPercent(product.profitMargin)}</td>
+            <td>${product.totalNumberInStock || 0}</td>
+            <td>${product.quantityBought || 0}</td>
+            <td class="price">${formatCurrency(product.totalAmount)}</td>
+            <td><span class="stock-badge ${getStockStatus(product.totalStocksLeft || product.stock)}">${product.totalStocksLeft || product.stock}</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Product">
@@ -900,7 +1287,7 @@ function renderPricing() {
     if (products.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="empty-state">
+                <td colspan="10" class="empty-state">
                     <i class="fas fa-dollar-sign"></i>
                     <h4>No pricing data</h4>
                     <p>Add products to manage pricing</p>
@@ -910,20 +1297,17 @@ function renderPricing() {
         return;
     }
     
-    tbody.innerHTML = products.map(product => {
-        const localMargin = ((product.localSelling - product.localPrice) / product.localPrice * 100).toFixed(1);
-        const abroadMargin = ((product.abroadSelling - product.abroadPrice) / product.abroadPrice * 100).toFixed(1);
-        
-        return `
+    tbody.innerHTML = products.map(product => `
             <tr>
                 <td><strong>${product.name}</strong></td>
-                <td>${product.collection || '-'}</td>
-                <td class="price">KSH ${product.localPrice.toFixed(2)}</td>
-                <td class="price">KSH ${product.localSelling.toFixed(2)}</td>
-                <td class="${parseFloat(localMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${localMargin}%</td>
-                <td class="price">KSH ${product.abroadPrice.toFixed(2)}</td>
-                <td class="price">KSH ${product.abroadSelling.toFixed(2)}</td>
-                <td class="${parseFloat(abroadMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${abroadMargin}%</td>
+                <td>${product.inventoryItemCode || product.sku || '-'}</td>
+                <td>${product.jewelryType || product.collection || '-'}</td>
+                <td class="price">${formatCurrency(product.estimatedPrice)}</td>
+                <td class="price">${formatCurrency(product.buyingPrice)}</td>
+                <td class="price">${formatCurrency(product.sellingPrice)}</td>
+                <td class="${toNumber(product.profitMargin) >= 0 ? 'margin-positive' : 'margin-negative'}">${formatPercent(product.profitMargin)}</td>
+                <td class="price">${formatCurrency(product.totalAmount)}</td>
+                <td><span class="stock-badge ${getStockStatus(product.totalStocksLeft || product.stock)}">${product.totalStocksLeft || product.stock}</span></td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn edit" onclick="openEditProductModal('${product.id}')" title="Edit Pricing">
@@ -935,8 +1319,7 @@ function renderPricing() {
                     </div>
                 </td>
             </tr>
-        `;
-    }).join('');
+        `).join('');
 }
 
 // Filter Products
@@ -961,11 +1344,19 @@ function filterProducts(searchTerm = '') {
         }
         
         if (search) {
+            const name = (product.name || '').toLowerCase();
+            const sku = (product.inventoryItemCode || product.sku || '').toLowerCase();
+            const categoryValue = (product.category || product.jewelryType || '').toLowerCase();
+            const typeValue = (product.type || product.jewelryType || '').toLowerCase();
+            const jewelryType = (product.jewelryType || '').toLowerCase();
+            const description = (product.description || '').toLowerCase();
             const searchMatch = 
-                product.name.toLowerCase().includes(search) ||
-                product.sku.toLowerCase().includes(search) ||
-                product.category.toLowerCase().includes(search) ||
-                product.type.toLowerCase().includes(search);
+                name.includes(search) ||
+                sku.includes(search) ||
+                categoryValue.includes(search) ||
+                typeValue.includes(search) ||
+                jewelryType.includes(search) ||
+                description.includes(search);
             if (!searchMatch) match = false;
         }
         
@@ -1034,21 +1425,39 @@ function exportInventory() {
         return;
     }
     
-    const headers = ['Name', 'SKU', 'Category', 'Type', 'Size', 'Quality', 'Stock', 'Local Price (KSH)', 'Local Selling (KSH)', 'Abroad Price (KSH)', 'Abroad Selling (KSH)'];
+    const headers = [
+        'Product Name',
+        'Inventory Item Code',
+        'Purchase Date',
+        'Jewelry Type',
+        'Description',
+        'Size',
+        'Estimated Price',
+        'Buying Price',
+        'Selling Price',
+        'Profit Margin (%)',
+        'Total Number In Stock',
+        'Quantity Bought',
+        'Total Amount',
+        'Total Stocks Left'
+    ];
     const csvContent = [
         headers.join(','),
         ...products.map(p => [
             `"${p.name}"`,
-            p.sku,
-            p.category,
-            `"${p.type}"`,
+            p.inventoryItemCode || p.sku || '',
+            p.purchaseDate || '',
+            `"${p.jewelryType || ''}"`,
+            `"${(p.description || '').replace(/"/g, '""')}"`,
             p.size || '',
-            p.quality,
-            p.stock,
-            p.localPrice,
-            p.localSelling,
-            p.abroadPrice,
-            p.abroadSelling
+            p.estimatedPrice,
+            p.buyingPrice,
+            p.sellingPrice,
+            toNumber(p.profitMargin).toFixed(2),
+            p.totalNumberInStock || 0,
+            p.quantityBought || 0,
+            p.totalAmount,
+            p.totalStocksLeft || p.stock || 0
         ].join(','))
     ].join('\n');
     
@@ -1072,14 +1481,14 @@ async function syncWithCloud() {
         showToast('Not connected to cloud', 'warning');
         return;
     }
+
+    if (!currentUser) {
+        showToast('Please sign in before syncing.', 'warning');
+        return;
+    }
     
     showToast('Syncing with cloud...', 'info');
-    await loadProducts();
-    updateDashboard();
-    renderProducts();
-    renderInventory();
-    renderPricing();
-    showToast('Sync complete!', 'success');
+    await refreshProductsFromCloud(true);
 }
 
 // Convert file to base64
@@ -1232,29 +1641,19 @@ function createProfitChart() {
     const ctx = document.getElementById('profitChart');
     if (!ctx) return;
     
-    // Calculate profit margins for each market
-    const localProfits = [];
-    const abroadProfits = [];
+    const margins = [];
     const labels = [];
     
-    // Get top 10 products by profit
-    const productProfits = products.map(p => {
-        const localProfit = ((p.localSelling - p.localPrice) / p.localPrice) * 100;
-        const abroadProfit = ((p.abroadSelling - p.abroadPrice) / p.abroadPrice) * 100;
-        return {
-            name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
-            localProfit: isFinite(localProfit) ? localProfit : 0,
-            abroadProfit: isFinite(abroadProfit) ? abroadProfit : 0
-        };
-    }).slice(0, 10);
+    const productProfits = products.map(p => ({
+        name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
+        margin: toNumber(p.profitMargin)
+    })).slice(0, 10);
     
     productProfits.forEach(p => {
         labels.push(p.name);
-        localProfits.push(p.localProfit);
-        abroadProfits.push(p.abroadProfit);
+        margins.push(p.margin);
     });
     
-    // Destroy existing chart
     if (profitChart) {
         profitChart.destroy();
     }
@@ -1263,22 +1662,13 @@ function createProfitChart() {
         type: 'bar',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Local Margin (%)',
-                    data: localProfits,
-                    backgroundColor: '#B8860B',
-                    borderColor: '#8B6914',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Abroad Margin (%)',
-                    data: abroadProfits,
-                    backgroundColor: '#DAA520',
-                    borderColor: '#C9A962',
-                    borderWidth: 1
-                }
-            ]
+            datasets: [{
+                label: 'Profit Margin (%)',
+                data: margins,
+                backgroundColor: '#B8860B',
+                borderColor: '#8B6914',
+                borderWidth: 1
+            }]
         },
         options: {
             responsive: true,
@@ -1315,7 +1705,7 @@ function createProfitChart() {
             },
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    display: false,
                     labels: {
                         font: {
                             family: 'Montserrat',
@@ -1351,36 +1741,8 @@ function updateCharts() {
 // Real-time Form Enhancements
 // =============================================
 
-// Calculate and display profit margin in real-time
-function calculateMargin(market) {
-    const costId = market === 'local' ? 'localPrice' : 'abroadPrice';
-    const sellingId = market === 'local' ? 'localSelling' : 'abroadSelling';
-    const marginId = market === 'local' ? 'localMargin' : 'abroadMargin';
-    
-    const cost = parseFloat(document.getElementById(costId).value) || 0;
-    const selling = parseFloat(document.getElementById(sellingId).value) || 0;
-    
-    const marginElement = document.getElementById(marginId);
-    if (!marginElement) return;
-    
-    if (cost > 0 && selling > 0) {
-        const margin = ((selling - cost) / cost * 100).toFixed(1);
-        const profit = (selling - cost).toFixed(2);
-        
-        if (margin > 0) {
-            marginElement.innerHTML = `<i class="fas fa-chart-line"></i> Profit: KSH ${profit} (${margin}% margin)`;
-            marginElement.style.color = '#4CAF50';
-        } else if (margin < 0) {
-            marginElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Loss: KSH ${profit} (${margin}% margin)`;
-            marginElement.style.color = '#F44336';
-        } else {
-            marginElement.innerHTML = `<i class="fas fa-info-circle"></i> No profit margin`;
-            marginElement.style.color = '#FF9800';
-        }
-    } else {
-        marginElement.innerHTML = `<i class="fas fa-chart-line"></i> Profit margin: 0%`;
-        marginElement.style.color = '#9B9B9B';
-    }
+function calculateMargin() {
+    updateInventoryCalculations();
 }
 
 
@@ -1429,7 +1791,7 @@ function formatPriceInput(inputId) {
 
 // Initialize price formatting on load
 document.addEventListener('DOMContentLoaded', function() {
-    ['localPrice', 'localSelling', 'abroadPrice', 'abroadSelling'].forEach(formatPriceInput);
+    ['estimatedPrice', 'buyingPrice', 'sellingPrice', 'profitMargin', 'totalAmount'].forEach(formatPriceInput);
 });
 
 // Keyboard shortcuts for better UX
@@ -1500,9 +1862,11 @@ window.updateStock = updateStock;
 window.updateTypeOptions = updateTypeOptions;
 window.exportInventory = exportInventory;
 window.syncWithCloud = syncWithCloud;
+window.signOutAdmin = signOutAdmin;
 window.previewImage = previewImage;
 window.previewImageUrl = previewImageUrl;
 window.calculateMargin = calculateMargin;
+window.updateInventoryCalculations = updateInventoryCalculations;
 window.filterInventoryByStatus = filterInventoryByStatus;
 window.filterByCategory = filterByCategory;
 window.updateMaterials = updateMaterials;

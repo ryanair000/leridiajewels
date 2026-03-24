@@ -127,17 +127,17 @@ function renderProductsGrid() {
             <div class="product-card-content">
                 <div class="product-card-name">${product.name}</div>
                 <div class="product-card-details">
-                    ${product.category} • ${product.type}<br>
-                    <span class="stock-badge ${getStockStatus(product.stock)}">${product.stock} pcs</span>
+                    ${product.jewelryType || product.category || '-'} • ${product.inventoryItemCode || product.sku || '-'}<br>
+                    <span class="stock-badge ${getStockStatus(product.totalStocksLeft || product.stock)}">${product.totalStocksLeft || product.stock} pcs</span>
                 </div>
                 <div class="product-card-price">
                     <div>
-                        <small>Local</small><br>
-                        <strong>KSH ${product.localSelling.toFixed(2)}</strong>
+                        <small>Selling</small><br>
+                        <strong>KSH ${Number(product.sellingPrice || 0).toFixed(2)}</strong>
                     </div>
                     <div>
-                        <small>Abroad</small><br>
-                        <strong>KSH ${product.abroadSelling.toFixed(2)}</strong>
+                        <small>Margin</small><br>
+                        <strong>${Number(product.profitMargin || 0).toFixed(1)}%</strong>
                     </div>
                 </div>
             </div>
@@ -192,17 +192,24 @@ function clearSelection() {
 function bulkDelete() {
     if (selectedProducts.size === 0) return;
     
+    const selectedIds = Array.from(selectedProducts);
+    const selectedCount = selectedIds.length;
+
     showConfirmation(
-        'Delete Products',
-        `Are you sure you want to delete ${selectedProducts.size} product(s)? This action cannot be undone.`,
-        () => {
-            selectedProducts.forEach(id => {
-                deleteProduct(id, true); // silent delete
-            });
+        'Archive Products',
+        `Are you sure you want to archive ${selectedCount} product(s)? They will leave the active inventory but stay recoverable in Supabase.`,
+        async () => {
+            let archivedCount = 0;
+            for (const id of selectedIds) {
+                const archived = await deleteProduct(id, true);
+                if (archived) {
+                    archivedCount += 1;
+                }
+            }
             clearSelection();
             updateDashboard();
             renderProducts();
-            showToast(`${selectedProducts.size} products deleted successfully!`);
+            showToast(`${archivedCount} product(s) archived successfully!`);
         }
     );
 }
@@ -219,19 +226,19 @@ function bulkExport() {
 function convertToCSV(data) {
     if (!data || data.length === 0) return '';
     
-    const headers = ['Name', 'SKU', 'Category', 'Type', 'Quality', 'Quantity', 'Weight(g)', 'Local Cost', 'Local Selling', 'Abroad Cost', 'Abroad Selling'];
+    const headers = ['Product Name', 'Inventory Item Code', 'Purchase Date', 'Jewelry Type', 'Description', 'Size', 'Buying Price', 'Selling Price', 'Profit Margin', 'Quantity Bought', 'Total Stocks Left'];
     const rows = data.map(p => [
         p.name,
-        p.sku,
-        p.category,
-        p.type,
-        p.quality,
-        p.stock,
-        p.weightGrams || '',
-        p.localPrice,
-        p.localSelling,
-        p.abroadPrice,
-        p.abroadSelling
+        p.inventoryItemCode || p.sku || '',
+        p.purchaseDate || '',
+        p.jewelryType || p.category || '',
+        p.description || '',
+        p.size || '',
+        p.buyingPrice || 0,
+        p.sellingPrice || 0,
+        Number(p.profitMargin || 0).toFixed(1),
+        p.quantityBought || 0,
+        p.totalStocksLeft || p.stock || 0
     ]);
     
     return [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
@@ -296,7 +303,7 @@ function hideLoading() {
 const originalDeleteProduct = window.deleteProduct;
 window.deleteProduct = function(productId, silent = false) {
     if (silent) {
-        originalDeleteProduct(productId);
+        originalDeleteProduct(productId, true);
         return;
     }
     
@@ -304,10 +311,10 @@ window.deleteProduct = function(productId, silent = false) {
     if (!product) return;
     
     showConfirmation(
-        'Delete Product',
-        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+        'Archive Product',
+        `Archive "${product.name}"? It will disappear from the active inventory but remain recoverable in Supabase.`,
         () => {
-            originalDeleteProduct(productId);
+            originalDeleteProduct(productId, true);
         }
     );
 };
