@@ -58,6 +58,7 @@ let db = null;
 
 // Connection status
 let isOnline = false;
+let isProductsLoading = false;
 
 // Auth/session state
 let currentUser = null;
@@ -110,6 +111,17 @@ async function initializeApp() {
 }
 
 // Update Connection Status UI
+function setProductsLoading(loading) {
+    isProductsLoading = !!loading;
+    document.body.classList.toggle('products-loading', isProductsLoading);
+    const statIds = ['totalProducts', 'lowStock', 'inStock'];
+    statIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('skeleton', isProductsLoading);
+    });
+}
+
 function updateConnectionStatus() {
     const statusIndicator = document.querySelector('.connection-status');
     if (statusIndicator) {
@@ -283,11 +295,16 @@ function refreshAllViews() {
 }
 
 async function refreshProductsFromCloud(showSuccessToast = false) {
-    await loadProducts();
-    refreshAllViews();
+    setProductsLoading(true);
+    try {
+        await loadProducts();
+        refreshAllViews();
 
-    if (showSuccessToast) {
-        showToast('Sync complete!', 'success');
+        if (showSuccessToast) {
+            showToast('Sync complete!', 'success');
+        }
+    } finally {
+        setProductsLoading(false);
     }
 }
 
