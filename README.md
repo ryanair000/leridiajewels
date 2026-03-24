@@ -52,7 +52,8 @@ A modern, professional inventory management system for Leridia Jewels with white
 
 ### Data Management
 - **Supabase Integration**: Cloud database with PostgreSQL
-- **Offline Mode**: localStorage fallback when offline
+- **Protected Admin Access**: Supabase Auth login with admin-only row policies
+- **Recoverable Deletes**: products are archived instead of hard-deleted from the app
 - **Real-time Sync**: Manual sync button for cloud updates
 - **CSV Export**: Export inventory to spreadsheet
 
@@ -76,13 +77,15 @@ A modern, professional inventory management system for Leridia Jewels with white
 ## Setup
 
 ### Local Development
-Simply open `index.html` in a web browser. Data is stored in localStorage.
+Simply open `index.html` in a web browser. For product data, sign in with a Supabase admin account.
 
 ### Supabase Setup
 1. Go to your Supabase project dashboard
 2. Navigate to SQL Editor
-3. Run the contents of `supabase-schema.sql`
-4. The app will automatically connect and sync
+3. Run the contents of `supabase-setup.sql`
+4. Create your admin user in Supabase Authentication
+5. Add the admin email to `public.admin_users`
+6. Sign in from the app
 
 ### Netlify Deployment
 1. Connect your GitHub repository to Netlify

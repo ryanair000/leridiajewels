@@ -2,9 +2,10 @@
 // For Netlify: Set these in Site Settings > Environment Variables
 // SUPABASE_URL and SUPABASE_ANON_KEY
 
-// Supabase project credentials (primary source of truth)
-const SUPABASE_URL = 'https://tbmkrgqqhrjgznhqldiz.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_8m4ugHn8BSDgkBtUrsUB-A_3pxPww0_';
+// Supabase project credentials
+// Netlify can inject these at runtime; local fallbacks keep the static app usable.
+const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://tbmkrgqqhrjgznhqldiz.supabase.co';
+const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'sb_publishable_8m4ugHn8BSDgkBtUrsUB-A_3pxPww0_';
 
 // Initialize Supabase Client
 let supabaseClient = null;

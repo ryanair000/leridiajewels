@@ -14,7 +14,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-locked">
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-card">
+            <div class="auth-card-brand">
+                <div class="auth-logo">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <p class="auth-kicker">Protected Inventory</p>
+                <h1>Leridia Jewels</h1>
+                <p class="auth-subtitle">Sign in with your Supabase admin account to open the inventory dashboard.</p>
+            </div>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Admin Email</label>
+                    <input type="email" id="loginEmail" autocomplete="username" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-field">
+                        <input type="password" id="loginPassword" autocomplete="current-password" required placeholder="Enter your password">
+                        <button type="button" class="password-toggle" id="toggleLoginPassword" aria-label="Show password" aria-pressed="false">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn-primary auth-submit" type="submit" id="loginButton">
+                    <i class="fas fa-right-to-bracket"></i> Sign In
+                </button>
+                <p class="auth-help" id="authHelpText">Anonymous access is blocked. Only approved admin accounts can read or change products.</p>
+            </form>
+        </div>
+    </div>
+
     <!-- Mobile Menu Toggle -->
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
         <i class="fas fa-bars"></i>
@@ -75,9 +108,10 @@
                     <div class="connection-status"></div>
                     <button class="btn-icon"><i class="fas fa-bell"></i></button>
                     <button class="btn-icon"><i class="fas fa-cog"></i></button>
+                    <button class="btn-icon" id="signOutButton" onclick="signOutAdmin()" title="Sign Out"><i class="fas fa-right-from-bracket"></i></button>
                     <div class="user-profile">
                         <div class="avatar">LJ</div>
-                        <span>Admin</span>
+                        <span id="currentUserLabel">Admin</span>
                     </div>
                 </div>
             </header>
@@ -155,10 +189,11 @@
                                     <tr>
                                         <th>Image</th>
                                         <th>Product</th>
-                                        <th>Collection</th>
-                                        <th>Quantity (pcs)</th>
-                                        <th>Local Price (KSH)</th>
-                                        <th>Abroad Price (KSH)</th>
+                                        <th>Item Code</th>
+                                        <th>Jewelry Type</th>
+                                        <th>Stocks Left</th>
+                                        <th>Selling Price (KSH)</th>
+                                        <th>Profit Margin</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -255,16 +290,14 @@
                                     </th>
                                     <th>Image</th>
                                     <th>Product Name</th>
-                                    <th>Collection</th>
-                                    <th>Materials</th>
-                                    <th class="column-hideable">Chains</th>
-                                    <th class="column-hideable">Quality</th>
-                                    <th class="column-hideable">Weight (g)</th>
-                                    <th>Quantity (pcs)</th>
-                                    <th class="column-hideable">Local Cost</th>
-                                    <th>Local Price</th>
-                                    <th class="column-hideable">Abroad Cost</th>
-                                    <th>Abroad Price</th>
+                                    <th>Item Code</th>
+                                    <th>Jewelry Type</th>
+                                    <th class="column-hideable">Purchase Date</th>
+                                    <th class="column-hideable">Size</th>
+                                    <th>Total Stocks Left</th>
+                                    <th class="column-hideable">Buying Price</th>
+                                    <th>Selling Price</th>
+                                    <th class="column-hideable">Profit Margin</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -536,11 +569,19 @@
                         <table class="data-table full-table">
                             <thead>
                                 <tr>
-                                    <th>Product Name</th>
-                                    <th>SKU</th>
-                                    <th>Collection</th>
-                                    <th>Quantity (pcs)</th>
-                                    <th>Status</th>
+                                    <th>Inventory Item Code</th>
+                                    <th>Purchase Date</th>
+                                    <th>Jewelry Type</th>
+                                    <th>Description</th>
+                                    <th>Size</th>
+                                    <th>Estimated Price</th>
+                                    <th>Buying Price</th>
+                                    <th>Selling Price</th>
+                                    <th>Profit Margin</th>
+                                    <th>Total Number In Stock</th>
+                                    <th>Quantity Bought</th>
+                                    <th>Total Amount</th>
+                                    <th>Total Stocks Left</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -560,14 +601,14 @@
                 
                 <div class="pricing-info">
                     <div class="info-card">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h4>Local Pricing</h4>
-                        <p>Prices for domestic customers</p>
+                        <i class="fas fa-wallet"></i>
+                        <h4>Unit Pricing</h4>
+                        <p>Track estimated, buying, and selling prices</p>
                     </div>
                     <div class="info-card">
-                        <i class="fas fa-globe"></i>
-                        <h4>Abroad Pricing</h4>
-                        <p>International customer prices</p>
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Margin Summary</h4>
+                        <p>Review profit margin and total amount per item</p>
                     </div>
                 </div>
                 
@@ -577,13 +618,14 @@
                             <thead>
                                 <tr>
                                     <th>Product Name</th>
-                                    <th>Collection</th>
-                                    <th>Local Cost</th>
-                                    <th>Local Selling</th>
-                                    <th>Local Margin</th>
-                                    <th>Abroad Cost</th>
-                                    <th>Abroad Selling</th>
-                                    <th>Abroad Margin</th>
+                                    <th>Item Code</th>
+                                    <th>Jewelry Type</th>
+                                    <th>Estimated Price</th>
+                                    <th>Buying Price</th>
+                                    <th>Selling Price</th>
+                                    <th>Profit Margin</th>
+                                    <th>Total Amount</th>
+                                    <th>Total Stocks Left</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -613,6 +655,30 @@
                         <label for="productName">Product Name *</label>
                         <input type="text" id="productName" required placeholder="e.g., Gold Plated Heart Earrings" autofocus>
                         <small class="form-help"><i class="fas fa-info-circle"></i> Enter a descriptive name for the product</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inventoryItemCode">Inventory Item Code</label>
+                            <input type="text" id="inventoryItemCode" placeholder="Auto-generated if left blank">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Internal code for tracking this inventory item</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseDate">Purchase Date</label>
+                            <input type="date" id="purchaseDate">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> When the item or batch was purchased</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="jewelryType">Jewelry Type</label>
+                            <input type="text" id="jewelryType" placeholder="e.g., Earrings, Necklace, Ring">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Main jewelry category for this item</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productDescription">Description</label>
+                        <textarea id="productDescription" rows="3" placeholder="Describe the item, design, finish, or notes for inventory"></textarea>
+                        <small class="form-help"><i class="fas fa-info-circle"></i> Inventory description shown in the management table</small>
                     </div>
                     
                     <div class="form-group">
@@ -696,10 +762,23 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="productStock">Quantity (pieces)</label>
-                            <input type="number" id="productStock" min="0" value="0" placeholder="0">
-                            <small class="form-help"><i class="fas fa-info-circle"></i> Current stock quantity</small>
+                            <label for="totalNumberInStock">Total Number In Stock</label>
+                            <input type="number" id="totalNumberInStock" min="0" value="0" placeholder="0" oninput="updateInventoryCalculations()">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Total units currently registered for this item</small>
                         </div>
+                        <div class="form-group">
+                            <label for="quantityBought">Quantity Bought</label>
+                            <input type="number" id="quantityBought" min="0" value="0" placeholder="0" oninput="updateInventoryCalculations()">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Quantity acquired in the purchase batch</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="productStock">Total Stocks Left</label>
+                            <input type="number" id="productStock" min="0" value="0" placeholder="0">
+                            <small class="form-help"><i class="fas fa-info-circle"></i> Current number of pieces still available</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="productWeight">Weight (grams)</label>
                             <input type="number" id="productWeight" step="0.01" min="0" placeholder="e.g., 5.5">
@@ -708,33 +787,34 @@
                     </div>
                     
                     <div class="form-section">
-                        <h4><i class="fas fa-map-marker-alt"></i> Local Pricing (KSH)</h4>
+                        <h4><i class="fas fa-wallet"></i> Inventory Pricing (KSH)</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="localPrice">Cost Price (KSH) *</label>
-                                <input type="number" id="localPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('local')">
-                                <small class="form-help"><i class="fas fa-info-circle"></i> What you paid for this item</small>
+                                <label for="estimatedPrice">Estimated Price</label>
+                                <input type="number" id="estimatedPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="updateInventoryCalculations()">
+                                <small class="form-help"><i class="fas fa-info-circle"></i> Estimated market value for the item</small>
                             </div>
                             <div class="form-group">
-                                <label for="localSelling">Selling Price (KSH) *</label>
-                                <input type="number" id="localSelling" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('local')">
-                                <small class="form-help margin-display" id="localMargin"><i class="fas fa-chart-line"></i> Profit margin: 0%</small>
+                                <label for="buyingPrice">Buying Price</label>
+                                <input type="number" id="buyingPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="updateInventoryCalculations()">
+                                <small class="form-help"><i class="fas fa-info-circle"></i> What you paid to acquire the item</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="sellingPrice">Selling Price</label>
+                                <input type="number" id="sellingPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="updateInventoryCalculations()">
+                                <small class="form-help"><i class="fas fa-info-circle"></i> Planned or current selling price</small>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="form-section">
-                        <h4><i class="fas fa-globe"></i> Abroad Pricing (KSH)</h4>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="abroadPrice">Cost Price (KSH) *</label>
-                                <input type="number" id="abroadPrice" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('abroad')">
-                                <small class="form-help"><i class="fas fa-info-circle"></i> Cost for export market</small>
+                                <label for="profitMargin">Profit Margin</label>
+                                <input type="number" id="profitMargin" step="0.01" min="-100" value="0" readonly>
+                                <small class="form-help margin-display" id="profitMarginDisplay"><i class="fas fa-chart-line"></i> Profit margin: 0%</small>
                             </div>
                             <div class="form-group">
-                                <label for="abroadSelling">Selling Price (KSH) *</label>
-                                <input type="number" id="abroadSelling" step="0.01" min="0" value="0" placeholder="0.00" oninput="calculateMargin('abroad')">
-                                <small class="form-help margin-display" id="abroadMargin"><i class="fas fa-chart-line"></i> Profit margin: 0%</small>
+                                <label for="totalAmount">Total Amount</label>
+                                <input type="number" id="totalAmount" step="0.01" min="0" value="0" readonly>
+                                <small class="form-help" id="totalAmountDisplay"><i class="fas fa-calculator"></i> Total amount: KSH 0.00</small>
                             </div>
                         </div>
                     </div>
@@ -824,7 +904,7 @@
                     <input type="hidden" id="stockProductId">
                     <p id="stockProductName" class="stock-product-name"></p>
                     <div class="form-group">
-                        <label for="newStock">New Stock Level</label>
+                        <label for="newStock">Total Stocks Left</label>
                         <input type="number" id="newStock" min="0" required>
                     </div>
                 </form>

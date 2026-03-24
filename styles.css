@@ -1,7 +1,5 @@
-/* =============================================
    Leridia Jewels - Inventory Management System
    Modern White & Gold Theme
-   ============================================= */
 
 :root {
     /* Rose / Pink Accent Colors */
@@ -115,9 +113,148 @@ p, span, label, td, th {
     min-height: 100vh;
 }
 
-/* =============================================
+body.auth-locked {
+    background:
+        radial-gradient(circle at top left, rgba(232, 137, 157, 0.22), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(196, 99, 122, 0.16), transparent 30%),
+        var(--off-white);
+}
+
+body.auth-locked > .mobile-menu-toggle,
+body.auth-locked > .sidebar-overlay,
+body.auth-locked > .app-container {
+    display: none;
+}
+
+.auth-screen {
+    min-height: 100vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 18px;
+}
+
+body.auth-locked .auth-screen {
+    display: flex;
+}
+
+.auth-card {
+    width: min(100%, 460px);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(196, 99, 122, 0.15);
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(45, 42, 43, 0.12);
+    padding: 32px 28px;
+    backdrop-filter: blur(12px);
+}
+
+.auth-card-brand {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.auth-logo {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 16px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gold-gradient);
+    color: var(--white);
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-gold);
+}
+
+.auth-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--gold-dark);
+    margin-bottom: 8px;
+}
+
+.auth-card-brand h1 {
+    font-size: 2.1rem;
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    max-width: 34ch;
+    margin: 0 auto;
+}
+
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    background: var(--accent-soft);
+    color: var(--gold-dark);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background: var(--accent-soft);
+    color: var(--gold-dark);
+    box-shadow: 0 0 0 3px rgba(196, 99, 122, 0.12);
+}
+
+.auth-submit {
+    width: 100%;
+    justify-content: center;
+}
+
+.auth-help {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.auth-help.error {
+    background: #FDECEA;
+    color: var(--danger);
+}
+
+.auth-help.success {
+    background: #E8F5E9;
+    color: var(--success);
+}
+
    Sidebar Styles
-   ============================================= */
 .sidebar {
     width: 250px;
     background: var(--white);
@@ -244,9 +381,7 @@ p, span, label, td, th {
     color: var(--text-muted);
 }
 
-/* =============================================
    Main Content
-   ============================================= */
 .main-content {
     flex: 1;
     margin-left: 250px;
@@ -312,6 +447,10 @@ p, span, label, td, th {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+body.auth-locked #signOutButton {
+    display: none;
 }
 
 .btn-icon {
@@ -2088,9 +2227,7 @@ p, span, label, td, th {
     background: var(--accent-soft);
     color: var(--gold-dark);
 }
-/* =============================================
    SUPPLIERS SECTION
-   ============================================= */
 
 .category-badge, .source-badge {
     display: inline-block;
@@ -2111,9 +2248,7 @@ p, span, label, td, th {
     color: var(--info);
 }
 
-/* =============================================
    IDEAS SECTION (Google Keep Style)
-   ============================================= */
 
 .ideas-grid {
     display: grid;
@@ -2220,9 +2355,7 @@ p, span, label, td, th {
         gap: 12px;
     }
 }
-/* =============================================
    Dark Pink Theme Override (Leridia Jewels)
-   ============================================= */
 :root {
     /* Dark Pink Brand Colors */
     --gold-primary: #D81B60;
