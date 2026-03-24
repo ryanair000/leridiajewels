@@ -2220,3 +2220,43 @@ p, span, label, td, th {
         gap: 12px;
     }
 }
+/* =============================================
+   Dark Pink Theme Override (Leridia Jewels)
+   ============================================= */
+:root {
+    /* Dark Pink Brand Colors */
+    --gold-primary: #D81B60;
+    --gold-light: #F06292;
+    --gold-dark: #AD1457;
+    --gold-gradient: linear-gradient(135deg, #D81B60 0%, #F06292 50%, #AD1457 100%);
+
+    /* Dark Surfaces / Accents */
+    --accent-soft: #2C0C22;  /* soft dark pink background */
+    --accent-hover: #EC407A;
+
+    /* Base Colors (dark mode) */
+    --white: #130712;        /* main surface */
+    --off-white: #1A0A1C;    /* page background */
+    --light-gray: #241027;   /* cards / inputs */
+    --border-gray: #3D1B42;  /* subtle borders */
+    --text-primary: #FFE6F2; /* main text */
+    --text-secondary: #E0A9C5;
+    --text-muted: #B57398;
+
+    /* Status Colors (kept close to original for clarity) */
+    --success: #43A047;
+    --warning: #FB8C00;
+    --danger: #E53935;
+    --info: #1E88E5;
+
+    /* Shadows tuned for dark background */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.65);
+    --shadow-gold: 0 4px 20px rgba(216, 27, 96, 0.45);
+}
+
+/* Optional: slightly darker main content background for extra depth */
+.main-content {
+    background: radial-gradient(circle at top left, #2C0C22 0%, #130712 40%, #0B050D 100%);
+}
