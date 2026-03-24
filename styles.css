@@ -2389,7 +2389,19 @@ body.auth-locked #signOutButton {
     --shadow-gold: 0 4px 20px rgba(216, 27, 96, 0.45);
 }
 
-/* Optional: slightly darker main content background for extra depth */
-.main-content {
-    background: radial-gradient(circle at top left, #2C0C22 0%, #130712 40%, #0B050D 100%);
+
+/* =============================================
+   Dark Pink Accent Override (Leridia Jewels)
+   - Keep light background
+   - Use deep pink as primary accent only
+   ============================================= */
+:root {
+    /* Dark Pink Brand Colors (accent-only) */
+    --gold-primary: #D81B60;
+    --gold-light: #F06292;
+    --gold-dark: #AD1457;
+    --gold-gradient: linear-gradient(135deg, #D81B60 0%, #F06292 50%, #AD1457 100%);
+
+    /* Hover accent tweak */
+    --accent-hover: #EC407A;
 }
