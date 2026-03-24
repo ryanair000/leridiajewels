@@ -205,16 +205,18 @@ async function handleAuthStateChange(session, { event = null, silent = false } =
 
     // Use cached products (if any) for instant dashboard while we refresh from Supabase
     const cachedProducts = loadProductsCache && loadProductsCache();
-    if (cachedProducts && cachedProducts.length) {
+    const hasCache = cachedProducts && cachedProducts.length;
+    if (hasCache) {
         products = cachedProducts;
         refreshAllViews();
     }
 
-    if (typeof showLoading === 'function') showLoading();
+    // Only block the whole screen when there is no cached data yet
+    if (!hasCache && typeof showLoading === 'function') showLoading();
     try {
         await refreshProductsFromCloud(false);
     } finally {
-        if (typeof hideLoading === 'function') hideLoading();
+        if (!hasCache && typeof hideLoading === 'function') hideLoading();
     }
 
     if (!silent && event === 'SIGNED_IN') {
