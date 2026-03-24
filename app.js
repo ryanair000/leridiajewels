@@ -63,6 +63,12 @@ let isOnline = false;
 let currentUser = null;
 let appInitialized = false;
 let authUiInitialized = false;
+const unsupportedProductColumns = new Set();
+const productSchemaCapabilities = {
+    supportsDeletedAt: true,
+    supportsCreatedAt: true
+};
+let legacySchemaNoticeShown = false;
 
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -127,11 +133,44 @@ function setupAuthUi() {
     if (authUiInitialized) return;
 
     const loginForm = document.getElementById('loginForm');
+    const togglePasswordButton = document.getElementById('toggleLoginPassword');
+
     if (loginForm) {
         loginForm.addEventListener('submit', signInAdmin);
     }
 
+    if (togglePasswordButton) {
+        togglePasswordButton.addEventListener('click', toggleLoginPasswordVisibility);
+    }
+
     authUiInitialized = true;
+}
+
+function toggleLoginPasswordVisibility() {
+    const passwordInput = document.getElementById('loginPassword');
+    const toggleButton = document.getElementById('toggleLoginPassword');
+
+    if (!passwordInput || !toggleButton) return;
+
+    const shouldShowPassword = passwordInput.type === 'password';
+    passwordInput.type = shouldShowPassword ? 'text' : 'password';
+    toggleButton.innerHTML = shouldShowPassword
+        ? '<i class="fas fa-eye-slash"></i>'
+        : '<i class="fas fa-eye"></i>';
+    toggleButton.setAttribute('aria-label', shouldShowPassword ? 'Hide password' : 'Show password');
+    toggleButton.setAttribute('aria-pressed', String(shouldShowPassword));
+}
+
+function resetLoginPasswordVisibility() {
+    const passwordInput = document.getElementById('loginPassword');
+    const toggleButton = document.getElementById('toggleLoginPassword');
+
+    if (!passwordInput || !toggleButton) return;
+
+    passwordInput.type = 'password';
+    toggleButton.innerHTML = '<i class="fas fa-eye"></i>';
+    toggleButton.setAttribute('aria-label', 'Show password');
+    toggleButton.setAttribute('aria-pressed', 'false');
 }
 
 async function handleAuthStateChange(session, { event = null, silent = false } = {}) {
@@ -254,11 +293,157 @@ function getFriendlySupabaseError(error, fallbackMessage) {
         return 'Your Supabase table is missing required columns. Run the updated supabase-setup.sql script once.';
     }
 
+    if (message.includes("could not find the '") && message.includes("column of 'products'")) {
+        return 'Your Supabase products table is on an older schema. The app can keep working in compatibility mode, but run supabase-setup.sql when you can.';
+    }
+
     if (message.includes('invalid login credentials')) {
         return 'Invalid email or password.';
     }
 
     return rawMessage || fallbackMessage;
+}
+
+function getMissingProductColumnName(error) {
+    const combinedMessage = [
+        error?.message,
+        error?.details,
+        error?.hint
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    const schemaCacheMatch = combinedMessage.match(/Could not find the '([^']+)' column of 'products'/i);
+    if (schemaCacheMatch) {
+        return schemaCacheMatch[1];
+    }
+
+    const columnMatch = combinedMessage.match(/column\s+(?:products\.)?["']?([a-zA-Z0-9_]+)["']?\s+does not exist/i);
+    if (columnMatch) {
+        return columnMatch[1];
+    }
+
+    return null;
+}
+
+function showLegacySchemaNotice(columnName) {
+    if (legacySchemaNoticeShown) return;
+
+    legacySchemaNoticeShown = true;
+    console.warn(`Using legacy schema compatibility for missing products column: ${columnName}`);
+    showToast('Using compatibility mode for an older Supabase products table. Run supabase-setup.sql later to enable the full inventory schema.', 'warning');
+}
+
+function sanitizeProductRecord(dbRecord) {
+    const sanitizedRecord = { ...dbRecord };
+    unsupportedProductColumns.forEach(columnName => {
+        delete sanitizedRecord[columnName];
+    });
+    return sanitizedRecord;
+}
+
+function handleMissingProductColumn(columnName, dbRecord = null) {
+    if (!columnName) return false;
+
+    if (columnName === 'deleted_at') {
+        if (!productSchemaCapabilities.supportsDeletedAt) {
+            return false;
+        }
+
+        productSchemaCapabilities.supportsDeletedAt = false;
+        showLegacySchemaNotice(columnName);
+        return true;
+    }
+
+    if (columnName === 'created_at') {
+        if (!productSchemaCapabilities.supportsCreatedAt) {
+            return false;
+        }
+
+        productSchemaCapabilities.supportsCreatedAt = false;
+        showLegacySchemaNotice(columnName);
+        return true;
+    }
+
+    if (dbRecord && Object.prototype.hasOwnProperty.call(dbRecord, columnName)) {
+        unsupportedProductColumns.add(columnName);
+        showLegacySchemaNotice(columnName);
+        return true;
+    }
+
+    return false;
+}
+
+async function fetchProductsWithCompatibility() {
+    let lastError = null;
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+        let query = db.from('products').select('*');
+
+        if (productSchemaCapabilities.supportsDeletedAt) {
+            query = query.is('deleted_at', null);
+        }
+
+        if (productSchemaCapabilities.supportsCreatedAt) {
+            query = query.order('created_at', { ascending: false });
+        }
+
+        const { data, error } = await query;
+        if (!error) {
+            return { data, error: null };
+        }
+
+        lastError = error;
+        const missingColumn = getMissingProductColumnName(error);
+        if (!handleMissingProductColumn(missingColumn)) {
+            break;
+        }
+    }
+
+    return { data: null, error: lastError };
+}
+
+async function writeProductWithCompatibility(dbRecord, { productId = null } = {}) {
+    let payload = sanitizeProductRecord(dbRecord);
+    let lastError = null;
+
+    for (let attempt = 0; attempt < 12; attempt++) {
+        let query;
+
+        if (productId) {
+            query = db
+                .from('products')
+                .update(payload)
+                .eq('id', productId);
+
+            if (productSchemaCapabilities.supportsDeletedAt) {
+                query = query.is('deleted_at', null);
+            }
+
+            query = query.select().single();
+        } else {
+            query = db
+                .from('products')
+                .insert(payload)
+                .select()
+                .single();
+        }
+
+        const { data, error } = await query;
+        if (!error) {
+            return data;
+        }
+
+        lastError = error;
+        const missingColumn = getMissingProductColumnName(error);
+        if (!handleMissingProductColumn(missingColumn, payload)) {
+            break;
+        }
+
+        payload = sanitizeProductRecord(dbRecord);
+    }
+
+    throw lastError;
 }
 
 async function signInAdmin(event) {
@@ -298,6 +483,7 @@ async function signInAdmin(event) {
     }
 
     document.getElementById('loginForm').reset();
+    resetLoginPasswordVisibility();
     showAuthMessage('Access granted. Opening your inventory now.', 'success');
 }
 
@@ -329,18 +515,16 @@ async function loadProducts() {
     }
     
     try {
-        const { data, error } = await db
-            .from('products')
-            .select('*')
-            .is('deleted_at', null)
-            .order('created_at', { ascending: false });
+        const { data, error } = await fetchProductsWithCompatibility();
         
         if (error) {
             console.error('Supabase error:', error);
             showToast('Error loading products: ' + getFriendlySupabaseError(error, 'Unable to load products.'), 'error');
             products = [];
         } else {
-            products = data.map(transformFromDb) || [];
+            products = (data || [])
+                .map(transformFromDb)
+                .filter(product => !product.deletedAt);
             console.log(`Loaded ${products.length} products from Supabase`);
         }
     } catch (err) {
@@ -483,6 +667,8 @@ function transformToDb(product) {
     return {
         name: product.name,
         sku: inventoryItemCode,
+        category: product.category || jewelryType,
+        type: product.type || product.chains || jewelryType,
         inventory_item_code: inventoryItemCode,
         purchase_date: product.purchaseDate || null,
         jewelry_type: jewelryType,
@@ -525,25 +711,11 @@ async function saveToSupabase(product, isUpdate = false) {
     const dbRecord = transformToDb(product);
 
     if (isUpdate) {
-        const { data, error } = await db
-            .from('products')
-            .update(dbRecord)
-            .eq('id', product.id)
-            .is('deleted_at', null)
-            .select()
-            .single();
-
-        if (error) throw error;
+        const data = await writeProductWithCompatibility(dbRecord, { productId: product.id });
         return transformFromDb(data);
     }
 
-    const { data, error } = await db
-        .from('products')
-        .insert(dbRecord)
-        .select()
-        .single();
-
-    if (error) throw error;
+    const data = await writeProductWithCompatibility(dbRecord);
     return transformFromDb(data);
 }
 
@@ -551,16 +723,48 @@ async function saveToSupabase(product, isUpdate = false) {
 async function archiveInSupabase(productId) {
     ensureAuthenticated('archive products');
 
-    const { error } = await db
-        .from('products')
-        .update({
-            deleted_at: new Date().toISOString(),
-            deleted_by_email: currentUser?.email || null
-        })
-        .eq('id', productId)
-        .is('deleted_at', null);
+    if (!productSchemaCapabilities.supportsDeletedAt) {
+        throw new Error('Archiving requires the updated Supabase schema. Run supabase-setup.sql once to enable recoverable deletes.');
+    }
 
-    if (error) throw error;
+    const archivePayload = {
+        deleted_at: new Date().toISOString(),
+        deleted_by_email: currentUser?.email || null
+    };
+
+    let payload = { ...archivePayload };
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+        let query = db
+            .from('products')
+            .update(payload)
+            .eq('id', productId);
+
+        if (productSchemaCapabilities.supportsDeletedAt) {
+            query = query.is('deleted_at', null);
+        }
+
+        const { error } = await query;
+        if (!error) {
+            return true;
+        }
+
+        const missingColumn = getMissingProductColumnName(error);
+        if (missingColumn === 'deleted_at') {
+            handleMissingProductColumn(missingColumn);
+            throw new Error('Archiving requires the updated Supabase schema. Run supabase-setup.sql once to enable recoverable deletes.');
+        }
+
+        if (Object.prototype.hasOwnProperty.call(payload, missingColumn)) {
+            unsupportedProductColumns.add(missingColumn);
+            showLegacySchemaNotice(missingColumn);
+            delete payload[missingColumn];
+            continue;
+        }
+
+        throw error;
+    }
+
     return true;
 }
 

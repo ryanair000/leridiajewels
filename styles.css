@@ -194,6 +194,44 @@ body.auth-locked .auth-screen {
     gap: 16px;
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    background: var(--accent-soft);
+    color: var(--gold-dark);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background: var(--accent-soft);
+    color: var(--gold-dark);
+    box-shadow: 0 0 0 3px rgba(196, 99, 122, 0.12);
+}
+
 .auth-submit {
     width: 100%;
     justify-content: center;
