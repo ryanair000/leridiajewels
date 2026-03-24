@@ -5,7 +5,7 @@
 // Supabase project credentials
 // Netlify can inject these at runtime; local fallbacks keep the static app usable.
 const SUPABASE_URL = window.ENV_SUPABASE_URL || 'https://tbmkrgqqhrjgznhqldiz.supabase.co';
-const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'sb_publishable_8m4ugHn8BSDgkBtUrsUB-A_3pxPww0_';
+const SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRibWtyZ3FxaHJqZ3puaHFsZGl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjAwMDEsImV4cCI6MjA4ODk5NjAwMX0.oMTqSZ9ubGNEWyM6An-Y7M5fwB2V0WMz8HkmU38YmHU';
 
 // Initialize Supabase Client
 let supabaseClient = null;
