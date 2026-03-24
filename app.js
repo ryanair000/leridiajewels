@@ -331,7 +331,8 @@ function showLegacySchemaNotice(columnName) {
 
     legacySchemaNoticeShown = true;
     console.warn(`Using legacy schema compatibility for missing products column: ${columnName}`);
-    showToast('Using compatibility mode for an older Supabase products table. Run supabase-setup.sql later to enable the full inventory schema.', 'warning');
+    // In production we keep this silent for admins and rely on the compatibility layer.
+    // The full supabase-setup.sql migration can still be run later without breaking the app.
 }
 
 function sanitizeProductRecord(dbRecord) {
@@ -1281,16 +1282,28 @@ async function updateStock(e) {
 
 // Update Dashboard
 function updateDashboard() {
+    const totalEl = document.getElementById('totalProducts');
+    const lowEl = document.getElementById('lowStock');
+    const inEl = document.getElementById('inStock');
+
+    // Before login or when no data is loaded yet, avoid showing misleading 0s.
+    if (!currentUser || !db || !isOnline) {
+        if (totalEl) totalEl.textContent = '—';
+        if (lowEl) lowEl.textContent = '—';
+        if (inEl) inEl.textContent = '—';
+        return;
+    }
+
     // Total products
-    document.getElementById('totalProducts').textContent = products.length;
+    if (totalEl) totalEl.textContent = products.length;
     
     // Low stock (<=10)
     const lowStock = products.filter(p => p.stock > 0 && p.stock <= 10).length;
-    document.getElementById('lowStock').textContent = lowStock;
+    if (lowEl) lowEl.textContent = lowStock;
     
     // In stock
     const inStock = products.filter(p => p.stock > 0).length;
-    document.getElementById('inStock').textContent = inStock;
+    if (inEl) inEl.textContent = inStock;
     
     // Recent products table
     renderRecentProducts();
