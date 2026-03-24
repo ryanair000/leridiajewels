@@ -115,31 +115,42 @@ function updateConnectionStatus() {
     }
 }
 
-// Load Products from Supabase
+// Load Products from Supabase (with localStorage cache fallback)
 async function loadProducts() {
+    // Always restore from cache first so UI is never blank
+    const cached = localStorage.getItem('lj_products_cache');
+    if (cached) {
+        try {
+            products = JSON.parse(cached);
+        } catch (e) {
+            products = [];
+        }
+    }
+
     if (!isOnline || !db) {
-        console.error('No database connection');
+        console.error('No database connection — using cache');
         return;
     }
-    
+
     try {
         const { data, error } = await db
             .from('products')
             .select('*')
             .order('created_at', { ascending: false });
-        
+
         if (error) {
             console.error('Supabase error:', error);
-            showToast('Error loading products: ' + error.message, 'error');
-            products = [];
+            showToast('Sync error — showing cached data', 'error');
+            // keep whatever was loaded from cache above
         } else {
             products = data.map(transformFromDb) || [];
+            localStorage.setItem('lj_products_cache', JSON.stringify(products));
             console.log(`Loaded ${products.length} products from Supabase`);
         }
     } catch (err) {
         console.error('Failed to load from Supabase:', err);
-        showToast('Failed to load products', 'error');
-        products = [];
+        showToast('Offline — showing cached data', 'error');
+        // keep whatever was loaded from cache above
     }
 }
 
@@ -620,7 +631,8 @@ async function saveProduct(e) {
     if (productId) {
         closeModal();
     }
-    
+
+    localStorage.setItem('lj_products_cache', JSON.stringify(products));
     updateDashboard();
     renderProducts();
     renderInventory();
@@ -643,6 +655,7 @@ async function deleteProduct(productId) {
         }
         
         products = products.filter(p => p.id != productId);
+        localStorage.setItem('lj_products_cache', JSON.stringify(products));
         updateDashboard();
         renderProducts();
         renderInventory();
@@ -681,7 +694,8 @@ async function updateStock(e) {
         
         // Update in Supabase
         const saved = await saveToSupabase(product, true);
-        
+
+        localStorage.setItem('lj_products_cache', JSON.stringify(products));
         updateDashboard();
         renderProducts();
         renderInventory();
