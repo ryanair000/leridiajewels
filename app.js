@@ -203,7 +203,19 @@ async function handleAuthStateChange(session, { event = null, silent = false } =
         appInitialized = true;
     }
 
-    await refreshProductsFromCloud(false);
+    // Use cached products (if any) for instant dashboard while we refresh from Supabase
+    const cachedProducts = loadProductsCache && loadProductsCache();
+    if (cachedProducts && cachedProducts.length) {
+        products = cachedProducts;
+        refreshAllViews();
+    }
+
+    if (typeof showLoading === 'function') showLoading();
+    try {
+        await refreshProductsFromCloud(false);
+    } finally {
+        if (typeof hideLoading === 'function') hideLoading();
+    }
 
     if (!silent && event === 'SIGNED_IN') {
         showToast('Signed in successfully.', 'success');
@@ -527,6 +539,7 @@ async function loadProducts() {
                 .map(transformFromDb)
                 .filter(product => !product.deletedAt);
             console.log(`Loaded ${products.length} products from Supabase`);
+            saveProductsCache();
         }
     } catch (err) {
         console.error('Failed to load from Supabase:', err);
@@ -563,6 +576,27 @@ function formatDateDisplay(value) {
     }
 
     return parsed.toISOString().split('T')[0];
+}
+
+function loadProductsCache() {
+    try {
+        const raw = localStorage.getItem('leridia-products-cache');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+        console.warn('Failed to load products cache', e);
+        return null;
+    }
+}
+
+function saveProductsCache() {
+    try {
+        if (!products || !Array.isArray(products)) return;
+        localStorage.setItem('leridia-products-cache', JSON.stringify(products));
+    } catch (e) {
+        console.warn('Failed to save products cache', e);
+    }
 }
 
 function calculateInventoryMetrics({
