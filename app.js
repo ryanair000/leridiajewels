@@ -1520,6 +1520,12 @@ function renderInventory() {
     
     tbody.innerHTML = sortedProducts.map(product => `
         <tr>
+            <td>
+                <div class="product-image viewable">
+                    <img src="${getProductImage(product)}" alt="${product.name}" title="Click to enlarge">
+                    <span class="img-zoom-hint"><i class="fas fa-search-plus"></i></span>
+                </div>
+            </td>
             <td>${product.inventoryItemCode || product.sku || '-'}</td>
             <td>${formatDateDisplay(product.purchaseDate)}</td>
             <td>${product.jewelryType || product.collection || '-'}</td>
