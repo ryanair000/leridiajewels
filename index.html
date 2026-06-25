@@ -1,340 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Leridi offers modern jewelry collections with polished, easy-to-style pieces for everyday wear and meaningful moments.">
-    <title>Leridi | Modern Jewelry for Everyday Shine</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="landing.css?v=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#3b2922" />
+  <title>Leridia Jewels | Jewelry Made for You</title>
+  <meta name="description" content="Handmade and custom jewelry in Nairobi with countrywide delivery across Kenya." />
+  <style>
+    :root{--ivory:#f8f3ea;--cream:#efe4d3;--gold:#c6a15b;--brown:#3b2922;--taupe:#75645c;--white:#fffdf9;--blush:#e9d8cd;--pale:#eee9df;--green:#466f4e;--shadow:0 18px 60px rgba(59,41,34,.12)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--ivory);color:var(--brown);font-family:Arial,Helvetica,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+    .announcement{height:34px;background:var(--brown);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;letter-spacing:1.6px}.announcement span{margin:0 12px}
+    .header{height:88px;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--cream);position:sticky;top:0;background:rgba(248,243,234,.96);backdrop-filter:blur(12px);z-index:20}.brand{border:0;background:none;color:var(--brown);font-family:Georgia,serif;font-size:28px;letter-spacing:5px}.desktopNav{display:flex;gap:25px;min-width:250px}.desktopNav.right{justify-content:flex-end}.desktopNav button,.menuButton,.bagButton{border:0;background:none;color:var(--brown);font-size:11px;font-weight:700;letter-spacing:1px}.menuButton,.bagButton{display:none}
+    .view{display:none}.view.active{display:block}.hero{min-height:650px;display:grid;grid-template-columns:1fr 1fr;background:linear-gradient(90deg,var(--cream),var(--ivory))}.heroCopy{padding:9vw 6vw;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}.eyebrow{color:var(--gold);font-weight:800;font-size:10px;letter-spacing:2.3px}.hero h1{font:600 clamp(48px,5vw,72px)/.98 Georgia,serif;margin:22px 0;max-width:650px}.hero p{color:var(--taupe);line-height:1.7;max-width:520px}.actions{display:flex;gap:12px;margin-top:22px}.primary,.secondary,.light{min-height:52px;padding:0 25px;border:1px solid var(--brown);font-size:10px;font-weight:800;letter-spacing:1.3px}.primary{background:var(--brown);color:var(--white)}.secondary{background:var(--white);color:var(--brown);border-color:var(--gold)}.light{background:var(--white);color:var(--brown);border:0}.full{width:100%}.center{display:block;margin:30px auto 0}.heroVisual,.campaign,.customVisual,.customPhoto{display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(135deg,var(--blush),var(--pale));color:var(--taupe);letter-spacing:1.4px}.jewelArt{width:115px;height:115px;border:7px solid var(--gold);border-radius:50%;position:relative}.jewelArt i{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--gold);left:calc(50% - 8px);top:calc(50% - 8px)}.jewelArt.large{width:230px;height:230px;border-width:12px;margin-bottom:35px}.jewelArt.huge{width:260px;height:260px;border-width:12px}
+    .section,.page{padding:85px 5vw}.white{background:var(--white)}.title{text-align:center;margin:0 auto 38px}.title span{color:var(--gold);font-weight:800;font-size:10px;letter-spacing:2.3px}.title h2{font:600 clamp(38px,4vw,54px)/1 Georgia,serif;margin:12px 0}.title p{color:var(--taupe);line-height:1.5}.categoryGrid,.productGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.categoryCard{border:1px solid var(--white);min-height:360px;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brown)}.categoryCard.tone1{background:var(--pale)}.categoryCard.tone2{background:var(--blush)}.categoryCard h3{font:600 24px Georgia,serif;margin:30px 0 10px}.categoryCard span{font-size:9px;font-weight:800;letter-spacing:1.3px}.productGrid{grid-template-columns:repeat(3,1fr);gap:30px 20px}.productCard{background:none;border:0;text-align:left;color:var(--brown);padding:0}.productImage{height:390px;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;border:1px solid var(--cream)}.productImage>span{position:absolute;top:14px;left:14px;background:var(--white);padding:7px 9px;font-size:8px;font-weight:800}.productImage small{position:absolute;bottom:25px;font-size:8px;letter-spacing:1.2px}.sand{background:#f4ead8}.pale{background:var(--pale)}.blush{background:var(--blush)}.cream{background:var(--cream)}.productMeta{display:flex;align-items:center;justify-content:space-between;margin-top:12px}.productMeta h3{font:600 24px Georgia,serif;margin:0}.productMeta b{font-size:12px}.productCard>p{font-size:9px;letter-spacing:.8px;color:var(--taupe)}.productWrap .quick{display:flex;justify-content:space-between}.quick button{border:0;background:none;color:var(--brown);font-size:9px;font-weight:800}
+    .editorial{display:grid;grid-template-columns:1fr 1fr;min-height:540px}.editorialCopy{background:var(--brown);color:var(--white);padding:7vw;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.editorial h2,.customBlock h2{font:600 52px/1 Georgia,serif;margin:20px 0}.editorial p{color:var(--cream);line-height:1.6}.customBlock{display:grid;grid-template-columns:1fr 1fr;gap:75px;padding:90px 6vw;align-items:center}.customVisual{height:500px}.customBlock p{color:var(--taupe);line-height:1.6}.steps{font-size:10px;font-weight:800;letter-spacing:.7px;margin:25px 0}.promise{padding:80px 5vw;background:var(--cream)}.promiseGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.promiseGrid article{background:var(--white);padding:30px}.promiseGrid article span{color:var(--gold);font-weight:800;font-size:10px}.promiseGrid b{display:block;font-size:11px;letter-spacing:1px;margin:10px 0}.promiseGrid p{color:var(--taupe)}
+    .page{min-height:650px}.shopTools{display:flex;justify-content:center;gap:12px;margin-bottom:35px}.shopTools input,.shopTools select,label input,label select,label textarea{min-height:52px;border:1px solid var(--cream);background:var(--white);padding:0 15px;color:var(--brown)}.shopTools input{width:min(480px,60vw)}.productDetail{display:grid;grid-template-columns:1.15fr .85fr;gap:70px;align-items:center}.productHeroImage{min-height:650px;display:flex;align-items:center;justify-content:center;flex-direction:column}.productInfo h1,.customPage h1{font:600 55px Georgia,serif;margin:15px 0}.productTitle{display:flex;align-items:center}.productTitle h1{flex:1}.productTitle button{border:0;background:none;font-size:32px;color:var(--brown)}.productInfo>p,.customPage p{color:var(--taupe);line-height:1.7}.productInfo label,.checkoutForm label,.customPage label{display:flex;flex-direction:column;gap:8px;margin:12px 0;font-size:10px;font-weight:800;letter-spacing:1px}.trust{font-size:10px;color:var(--taupe);margin-top:20px}.empty{text-align:center;padding:60px}
+    .cartLayout,.checkoutLayout{display:grid;grid-template-columns:1fr 420px;gap:45px;max-width:1200px;margin:0 auto}.cartItem{display:grid;grid-template-columns:150px 1fr auto;gap:20px;background:var(--white);border:1px solid var(--cream);padding:18px;margin-bottom:16px}.miniImage{display:flex;align-items:center;justify-content:center}.miniImage .jewelArt{width:75px;height:75px;border-width:5px}.cartItem h3{font:600 28px Georgia,serif;margin:10px 0}.cartItem p{color:var(--taupe)}.qty{display:flex;align-items:center;gap:15px;margin-top:15px}.qty button{border:1px solid var(--cream);background:var(--ivory);width:34px;height:34px}.remove{border:0;background:none;font-size:9px;font-weight:800}.summary{background:var(--white);border:1px solid var(--cream);padding:25px;height:max-content}.summary h3{letter-spacing:1px;font-size:12px}.summary p{display:flex;justify-content:space-between;gap:15px;color:var(--taupe);padding:10px 0}.summary .total{border-top:1px solid var(--cream);color:var(--brown);font-size:16px}.summary button{margin-top:10px}.fieldRow{display:grid;grid-template-columns:1fr 1fr;gap:14px}.checkoutForm{background:var(--white);border:1px solid var(--cream);padding:28px}.checkoutForm input,.checkoutForm select,.customPage input,.customPage select,.customPage textarea{width:100%}.paymentChoice{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.paymentChoice label{border:1px solid var(--gold);padding:18px;display:block;margin:0}.paymentChoice input{width:auto;min-height:auto}.checkoutForm small{display:block;color:var(--taupe);line-height:1.5;margin-top:15px}.narrow{max-width:900px;margin:0 auto}.timeline{background:var(--white);border:1px solid var(--cream);padding:30px}.timeline>div{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--cream);color:var(--taupe)}.timeline>div>span{width:30px;height:30px;border-radius:50%;background:var(--pale);display:grid;place-items:center}.timeline .done,.timeline .active{color:var(--brown)}.timeline .done>span{background:var(--green);color:white}.timeline .active>span{background:var(--gold);color:white}.timeline p{margin:5px 0}
+    .customPage{display:grid;grid-template-columns:1fr 1fr;gap:65px}.customPhoto{min-height:700px}.customPage textarea{min-height:120px;padding:15px}.upload{border:1px dashed var(--gold);padding:25px;text-align:center;cursor:pointer}.upload input{display:none}.accountGrid{display:grid;grid-template-columns:1fr 1fr;gap:25px;max-width:1100px;margin:0 auto}.loyalty{background:var(--brown);color:var(--white);padding:40px}.loyalty>span{color:var(--gold);font-weight:800;letter-spacing:1.4px;font-size:11px}.loyalty h2{font:600 50px Georgia,serif}.loyalty p{color:var(--cream)}.loyalty>div{height:10px;background:var(--taupe);border-radius:10px}.loyalty i{display:block;width:75%;height:100%;background:var(--gold);border-radius:10px}.accountTiles{display:grid;gap:12px}.accountTiles button{background:var(--white);border:1px solid var(--cream);padding:18px;text-align:left;display:grid;grid-template-columns:1fr auto}.accountTiles b,.accountTiles span{display:block}.accountTiles b{color:var(--gold);font-size:10px;letter-spacing:1px}.accountTiles i{grid-row:1/3;grid-column:2}.adminStats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.adminStats article{background:var(--white);padding:24px;border:1px solid var(--cream)}.adminStats span{color:var(--gold);font-size:10px;font-weight:800}.adminStats h3{font:600 36px Georgia,serif;margin:10px 0}.adminTable{margin-top:25px;border:1px solid var(--cream)}.adminTable>div{display:grid;grid-template-columns:2fr 2fr 1fr 1fr;padding:15px;background:var(--white);border-bottom:1px solid var(--cream)}.adminHead{background:var(--brown)!important;color:var(--white)!important}
+    .footer{background:var(--brown);color:var(--white);padding:70px 5vw 30px}.newsletter{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.15)}.newsletter h3{font:600 38px Georgia,serif;margin:10px 0}.newsletter form{display:flex}.newsletter input{flex:1;min-height:58px;border:0;padding:0 18px}.newsletter button{border:0;background:var(--gold);color:var(--brown);font-size:10px;font-weight:800;padding:0 24px}.footerGrid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;padding:45px 0}.footerGrid h4{font:600 28px Georgia,serif;letter-spacing:3px}.footerGrid p,.footerGrid span,.footerGrid button{color:var(--cream);font-size:12px}.footerGrid button{display:block;border:0;background:none;padding:5px 0}.footerGrid b{color:var(--gold);font-size:10px;letter-spacing:1px;display:block;margin-bottom:10px}.footerGrid span{display:block;padding:5px 0}.legal{font-size:9px;color:var(--cream);display:flex;justify-content:space-between}
+    .drawerBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50}.drawer{width:min(370px,90vw);height:100%;background:var(--brown);padding:25px;color:var(--white);display:flex;flex-direction:column;gap:15px}.drawerTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}.drawerTop button{border:0;background:none;color:white;font-size:30px}.drawer>button{border:0;background:none;color:white;text-align:left;font:600 30px Georgia,serif;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.15)}.drawerSocial{margin-top:auto;color:var(--gold);font-size:10px}.toast{position:fixed;top:135px;right:25px;background:var(--brown);color:var(--white);padding:16px 22px;z-index:60;box-shadow:var(--shadow)}
+    @media(max-width:900px){.desktopNav{display:none}.menuButton,.bagButton{display:block}.header{height:72px;padding:0 20px}.brand{font-size:19px;letter-spacing:3px}.hero{grid-template-columns:1fr}.heroVisual{grid-row:1;min-height:310px}.heroCopy{padding:50px 24px;text-align:center;align-items:center}.hero h1{font-size:43px}.actions{flex-direction:column;width:100%}.actions button{width:100%}.section,.page{padding:55px 20px}.categoryGrid{grid-template-columns:1fr 1fr;gap:10px}.categoryCard{min-height:210px}.categoryCard .jewelArt{width:70px;height:70px;border-width:5px}.categoryCard h3{font-size:18px;margin:20px 0 8px}.productGrid{grid-template-columns:1fr 1fr;gap:25px 12px}.productImage{height:235px}.productImage .jewelArt{width:88px;height:88px;border-width:6px}.productMeta{display:block}.productMeta h3{font-size:20px}.editorial,.customBlock,.productDetail,.customPage{grid-template-columns:1fr}.campaign{min-height:270px}.editorialCopy{padding:55px 24px;text-align:center;align-items:center}.editorial h2,.customBlock h2{font-size:42px}.customBlock{padding:55px 20px;gap:35px}.customVisual{height:320px}.promiseGrid{grid-template-columns:1fr}.shopTools{flex-direction:column}.shopTools input{width:100%}.productHeroImage{min-height:400px}.productInfo h1,.customPage h1{font-size:42px}.productInfo .actions{width:100%}.cartLayout,.checkoutLayout,.accountGrid{grid-template-columns:1fr}.cartItem{grid-template-columns:100px 1fr}.cartItem .remove{grid-column:2}.fieldRow,.paymentChoice{grid-template-columns:1fr}.customPhoto{min-height:320px}.adminStats{grid-template-columns:1fr 1fr}.adminTable{overflow:auto}.adminTable>div{min-width:650px}.newsletter,.footerGrid{grid-template-columns:1fr}.newsletter form{flex-direction:column}.newsletter button{min-height:52px}.footerGrid{gap:25px}.toast{left:20px;right:20px;top:115px}}
+  </style>
 </head>
 <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-
-    <div class="page-backdrop" aria-hidden="true">
-        <div class="backdrop-orb orb-one"></div>
-        <div class="backdrop-orb orb-two"></div>
-        <div class="backdrop-grid"></div>
-    </div>
-
-    <header class="site-header" id="top">
-        <div class="container header-shell">
-            <a href="#top" class="brand" aria-label="Leridi home">
-                <span class="brand-mark">
-                    <i class="fas fa-gem"></i>
-                </span>
-                <span class="brand-copy">
-                    <strong>Leridi</strong>
-                    <small>Jewelry that feels effortlessly polished</small>
-                </span>
-            </a>
-
-            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Toggle navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-
-            <nav class="site-nav" id="siteNav">
-                <a href="#collections">Collections</a>
-                <a href="#experience">Why Leridi</a>
-                <a href="#signature">Signature Style</a>
-                <a href="#visit">Visit</a>
-                <a href="dashboard.html" class="btn btn-small btn-outline">Dashboard</a>
-            </nav>
-        </div>
-    </header>
-
-    <main id="main">
-        <section class="hero section">
-            <div class="container hero-grid">
-                <div class="hero-copy" data-reveal>
-                    <p class="eyebrow">Modern jewelry, styled with ease</p>
-                    <h1>Elegant pieces for everyday glow and special moments.</h1>
-                    <p class="hero-text">
-                        Leridi brings together refined silhouettes, warm finishes, and easy-to-style collections so your next favorite piece feels instantly wearable.
-                    </p>
-
-                    <div class="hero-actions">
-                        <a href="#collections" class="btn btn-primary">Explore Collections</a>
-                        <a href="#experience" class="btn btn-secondary">See the Leridi feel</a>
-                    </div>
-
-                    <div class="hero-highlights">
-                        <article class="highlight-card">
-                            <strong>Layer-friendly essentials</strong>
-                            <span>Necklaces, rings, and bracelets designed to mix without feeling overdone.</span>
-                        </article>
-                        <article class="highlight-card">
-                            <strong>Refined everyday styling</strong>
-                            <span>Pieces that move smoothly from daytime plans to evening events.</span>
-                        </article>
-                        <article class="highlight-card">
-                            <strong>Thoughtful gifting energy</strong>
-                            <span>Clean, elegant choices for birthdays, celebrations, and memorable milestones.</span>
-                        </article>
-                    </div>
-                </div>
-
-                <div class="hero-visual" data-reveal>
-                    <div class="spotlight-card">
-                        <span class="pill">Curated Edit</span>
-                        <h2>Golden Hour Layers</h2>
-                        <p>
-                            Soft shine, clean lines, and stackable styling that adds polish without overpowering the outfit.
-                        </p>
-                        <div class="tag-row">
-                            <span>Stackable rings</span>
-                            <span>Delicate chains</span>
-                            <span>Statement drops</span>
-                        </div>
-                    </div>
-
-                    <div class="floating-note note-left">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <strong>Everyday luxe</strong>
-                            <span>Easy to style, easy to love.</span>
-                        </div>
-                    </div>
-
-                    <div class="floating-note note-right">
-                        <i class="fas fa-heart"></i>
-                        <div>
-                            <strong>Gift-ready picks</strong>
-                            <span>Elegant choices for meaningful moments.</span>
-                        </div>
-                    </div>
-
-                    <div class="mini-card-grid">
-                        <article class="mini-card">
-                            <i class="fas fa-circle-notch"></i>
-                            <span>Minimal silhouettes</span>
-                        </article>
-                        <article class="mini-card">
-                            <i class="fas fa-star"></i>
-                            <span>Subtle shine</span>
-                        </article>
-                        <article class="mini-card">
-                            <i class="fas fa-hand-sparkles"></i>
-                            <span>Instant polish</span>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="category-ribbon">
-            <div class="container ribbon-shell">
-                <p>Signature categories</p>
-                <div class="chip-row">
-                    <span>Earrings</span>
-                    <span>Necklaces</span>
-                    <span>Rings</span>
-                    <span>Bracelets</span>
-                    <span>Anklets</span>
-                    <span>Accessories</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="collections">
-            <div class="container">
-                <div class="section-heading" data-reveal>
-                    <p class="eyebrow">Collections</p>
-                    <h2>Built around the pieces people actually reach for.</h2>
-                    <p>
-                        From understated staples to bolder accents, Leridi collections are organized around wearability, versatility, and polished detail.
-                    </p>
-                </div>
-
-                <div class="collection-grid">
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-gem"></i></div>
-                        <h3>Earrings</h3>
-                        <p>Studs, hoops, drops, and statement shapes that brighten the face without competing with your outfit.</p>
-                    </article>
-
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-link"></i></div>
-                        <h3>Necklaces</h3>
-                        <p>Delicate layers, clean chains, and standout pendants that bring balance to everyday styling.</p>
-                    </article>
-
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-gem"></i></div>
-                        <h3>Rings</h3>
-                        <p>From sleek stackers to expressive centerpieces, rings that feel elegant on their own or combined.</p>
-                    </article>
-
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
-                        <h3>Bracelets</h3>
-                        <p>Cuffs, bangles, and chain styles that add movement and softness to your wrist stack.</p>
-                    </article>
-
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-sun"></i></div>
-                        <h3>Anklets</h3>
-                        <p>Light-catching finishes and playful details for relaxed looks, warm weather dressing, and layered styling.</p>
-                    </article>
-
-                    <article class="collection-card" data-reveal>
-                        <div class="collection-icon"><i class="fas fa-gift"></i></div>
-                        <h3>Accessories</h3>
-                        <p>Beautiful finishing touches and thoughtful add-ons that make styling and gifting feel complete.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section editorial-section" id="experience">
-            <div class="container editorial-grid">
-                <div class="editorial-copy" data-reveal>
-                    <p class="eyebrow">Why Leridi</p>
-                    <h2>Jewelry that feels elevated without becoming hard to wear.</h2>
-                    <p>
-                        The Leridi look leans polished, feminine, and easy. Every section of the brand experience is shaped around helping shoppers move quickly from inspiration to a piece they genuinely want to wear again and again.
-                    </p>
-                    <a href="#signature" class="text-link">See the signature style <i class="fas fa-arrow-right"></i></a>
-                </div>
-
-                <div class="editorial-panel-stack">
-                    <article class="editorial-panel panel-large" data-reveal>
-                        <p class="panel-label">Style Notes</p>
-                        <h3>Quiet confidence, warm shine, clean silhouettes.</h3>
-                        <p>
-                            Leridi is designed for people who want their jewelry to finish a look, not fight it.
-                        </p>
-                    </article>
-
-                    <article class="editorial-panel" data-reveal>
-                        <i class="fas fa-feather-pointed"></i>
-                        <div>
-                            <h3>Light on effort</h3>
-                            <p>Clear category browsing and a calm layout make the experience feel intuitive from the start.</p>
-                        </div>
-                    </article>
-
-                    <article class="editorial-panel" data-reveal>
-                        <i class="fas fa-box-open"></i>
-                        <div>
-                            <h3>Ready for gifting</h3>
-                            <p>Elegant presentation and easy discovery make it simple to shop for someone special.</p>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" id="signature">
-            <div class="container">
-                <div class="section-heading" data-reveal>
-                    <p class="eyebrow">Signature Style</p>
-                    <h2>What makes the Leridi experience feel modern and user-friendly.</h2>
-                    <p>
-                        The page is structured to feel clear at a glance, expressive without clutter, and welcoming on both desktop and mobile.
-                    </p>
-                </div>
-
-                <div class="signature-grid">
-                    <article class="signature-card" data-reveal>
-                        <span class="signature-number">01</span>
-                        <h3>Clear pathways</h3>
-                        <p>Sections are short, scannable, and arranged so shoppers can move naturally from interest to action.</p>
-                    </article>
-
-                    <article class="signature-card" data-reveal>
-                        <span class="signature-number">02</span>
-                        <h3>Editorial feel</h3>
-                        <p>Warm gradients, layered surfaces, and serif-led typography make the brand feel elevated and distinctive.</p>
-                    </article>
-
-                    <article class="signature-card" data-reveal>
-                        <span class="signature-number">03</span>
-                        <h3>Mobile-first comfort</h3>
-                        <p>Responsive spacing, touch-friendly actions, and a clean navigation drawer keep the page easy to use anywhere.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section process-section" id="visit">
-            <div class="container process-shell">
-                <div class="process-copy" data-reveal>
-                    <p class="eyebrow">Visit Leridi</p>
-                    <h2>Start with the collection that matches the moment.</h2>
-                    <p>
-                        Whether the goal is daily essentials, soft statement pieces, or a gift that feels intentional, the landing page guides visitors toward a simple next step.
-                    </p>
-                </div>
-
-                <div class="process-steps">
-                    <article class="process-card" data-reveal>
-                        <span>01</span>
-                        <h3>Browse by mood</h3>
-                        <p>Explore categories built around how people actually style jewelry, not just product labels.</p>
-                    </article>
-
-                    <article class="process-card" data-reveal>
-                        <span>02</span>
-                        <h3>Pick your standout</h3>
-                        <p>Move from subtle shine to stronger accents depending on the look and the occasion.</p>
-                    </article>
-
-                    <article class="process-card" data-reveal>
-                        <span>03</span>
-                        <h3>Finish with confidence</h3>
-                        <p>Clear calls to action and a calm layout make the experience feel polished right through the final click.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <section class="section cta-section">
-            <div class="container">
-                <div class="cta-card" data-reveal>
-                    <p class="eyebrow">Ready to explore?</p>
-                    <h2>Discover a jewelry experience that feels polished from the first scroll.</h2>
-                    <p>
-                        Browse the Leridi collections, or open the preserved dashboard if you are managing the inventory side of the business.
-                    </p>
-                    <div class="hero-actions">
-                        <a href="#collections" class="btn btn-primary">View Collections</a>
-                        <a href="dashboard.html" class="btn btn-secondary">Open Dashboard</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="container footer-shell">
-            <div class="footer-brand">
-                <a href="#top" class="brand brand-footer">
-                    <span class="brand-mark">
-                        <i class="fas fa-gem"></i>
-                    </span>
-                    <span class="brand-copy">
-                        <strong>Leridi</strong>
-                        <small>Modern jewelry for everyday shine</small>
-                    </span>
-                </a>
-                <p>Designed to feel elegant, wearable, and easy to explore.</p>
-            </div>
-
-            <div class="footer-links">
-                <a href="#collections">Collections</a>
-                <a href="#experience">Why Leridi</a>
-                <a href="#signature">Signature Style</a>
-                <a href="dashboard.html">Dashboard</a>
-            </div>
-        </div>
-    </footer>
-
-    <script src="landing.js"></script>
+  <div class="announcement">HANDMADE IN NAIROBI <span>•</span> COUNTRYWIDE DELIVERY</div>
+  <header class="header">
+    <button class="menuButton" onclick="openMenu()">MENU</button>
+    <nav class="desktopNav"><button onclick="go('shop')">SHOP</button><button onclick="go('custom')">CUSTOM</button><button onclick="go('account')">REWARDS</button></nav>
+    <button class="brand" onclick="go('home')">LERIDIA JEWELS</button>
+    <nav class="desktopNav right"><button onclick="go('track')">TRACK</button><button onclick="go('account')">ACCOUNT</button><button onclick="go('cart')">BAG (<span data-cart-count>0</span>)</button></nav>
+    <button class="bagButton" onclick="go('cart')">BAG (<span data-cart-count>0</span>)</button>
+  </header>
+  <div id="menu" class="drawerBackdrop hidden" onclick="closeMenu()"><aside class="drawer" onclick="event.stopPropagation()"><div class="drawerTop"><strong>LERIDIA JEWELS</strong><button onclick="closeMenu()">×</button></div><button onclick="go('home')">HOME</button><button onclick="go('shop')">SHOP</button><button onclick="go('custom')">CUSTOM</button><button onclick="go('track')">TRACK ORDER</button><button onclick="go('account')">MY ACCOUNT</button><button onclick="go('cart')">BAG</button><div class="drawerSocial">INSTAGRAM • TIKTOK • WHATSAPP</div></aside></div>
+  <div id="toast" class="toast hidden"></div>
+  <section id="home" class="view active"></section><section id="shop" class="view"></section><section id="product" class="view"></section><section id="cart" class="view"></section><section id="checkout" class="view"></section><section id="track" class="view"></section><section id="custom" class="view"></section><section id="account" class="view"></section><section id="admin" class="view"></section>
+  <footer class="footer"><section class="newsletter"><div><span class="eyebrow">A LITTLE SPARKLE IN YOUR INBOX</span><h3>New pieces, private offers<br>and styling inspiration.</h3></div><form onsubmit="subscribe(event)"><input required type="email" placeholder="Email address"><button>JOIN THE LIST</button></form></section><div class="footerGrid"><div><h4>LERIDIA JEWELS</h4><p>Jewelry made for you.</p><p>Handmade in Nairobi and delivered countrywide.</p></div><div><b>SHOP</b><button onclick="go('shop')">Necklaces</button><button onclick="go('custom')">Custom pieces</button><button onclick="go('account')">Rewards</button></div><div><b>HELP</b><button onclick="go('track')">Track order</button><button onclick="go('account')">Account</button><button onclick="go('admin')">Admin demo</button></div><div><b>FOLLOW</b><span>Instagram</span><span>TikTok</span><span>WhatsApp</span></div></div><div class="legal">© 2026 LERIDIA JEWELS <span>PRIVACY • TERMS</span></div></footer>
+  <script>
+    const products=[{id:'chica',name:'Chica',price:1500,material:'Gold-plated',category:'Necklaces',stock:10,tone:'sand',description:'A polished everyday necklace handmade in Nairobi with an adjustable, softly luxurious finish.'},{id:'mara',name:'Mara',price:1650,material:'Stainless steel',category:'Necklaces',stock:10,tone:'pale',description:'Minimal, durable and effortless—made for everyday styling and thoughtful gifting.'},{id:'nesri',name:'Nesri',price:1500,material:'Gold-plated',category:'Necklaces',stock:10,tone:'blush',description:'A delicate handmade piece with a warm glow and clean modern lines.'},{id:'riri',name:'Riri',price:1500,material:'Stainless steel',category:'Necklaces',stock:10,tone:'cream',description:'Simple and versatile with a refined chain profile for easy layering.'},{id:'lilah',name:'Lilah',price:1500,material:'Pearl detail',category:'Necklaces',stock:10,tone:'pale',description:'Soft pearl details bring a feminine finish to a modern, wearable silhouette.'},{id:'cherry',name:'Cherry',price:1500,material:'Beaded detail',category:'Necklaces',stock:10,tone:'blush',description:'Playful beadwork balanced with Leridia’s elegant, minimal design language.'}];
+    let cart=JSON.parse(localStorage.getItem('leridia-cart')||'[]'),wishlist=JSON.parse(localStorage.getItem('leridia-wishlist')||'[]'),selected=products[0],lastOrder=JSON.parse(localStorage.getItem('leridia-order')||'null');
+    const money=n=>'KSh '+Number(n).toLocaleString('en-KE'),art=(cls='')=>`<div class="jewelArt ${cls}"><i></i></div>`,title=(eye,head,sub='')=>`<div class="title"><span>${eye.toUpperCase()}</span><h2>${head}</h2>${sub?`<p>${sub}</p>`:''}</div>`,productCard=p=>`<button class="productCard" onclick="selectProduct('${p.id}')"><div class="productImage ${p.tone}"><span>NEW</span>${art()}<small>PRODUCT PHOTO PLACEHOLDER</small></div><div class="productMeta"><h3>${p.name}</h3><b>${money(p.price)}</b></div><p>${p.material.toUpperCase()} • MADE IN NAIROBI</p></button>`;
+    function save(){localStorage.setItem('leridia-cart',JSON.stringify(cart));localStorage.setItem('leridia-wishlist',JSON.stringify(wishlist));document.querySelectorAll('[data-cart-count]').forEach(x=>x.textContent=cart.reduce((n,i)=>n+i.quantity,0))}function notify(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),2500)}function go(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');closeMenu();render(id);scrollTo({top:0,behavior:'smooth'})}function openMenu(){document.getElementById('menu').classList.remove('hidden')}function closeMenu(){document.getElementById('menu').classList.add('hidden')}function selectProduct(id){selected=products.find(p=>p.id===id)||products[0];go('product')}function addToCart(id,length='18 inches'){const p=products.find(x=>x.id===id),found=cart.find(x=>x.id===id&&x.length===length);found?found.quantity++:cart.push({...p,quantity:1,length});save();notify(p.name+' added to your bag.')}function toggleWish(id){wishlist=wishlist.includes(id)?wishlist.filter(x=>x!==id):[...wishlist,id];save();render(document.querySelector('.view.active').id)}function subscribe(e){e.preventDefault();notify('You’re on the Leridia list.');e.target.reset()}function render(id){if(id==='home')renderHome();if(id==='shop')renderShop();if(id==='product')renderProduct();if(id==='cart')renderCart();if(id==='checkout')renderCheckout();if(id==='track')renderTrack();if(id==='custom')renderCustom();if(id==='account')renderAccount();if(id==='admin')renderAdmin()}
+    function renderHome(){document.getElementById('home').innerHTML=`<section class="hero"><div class="heroCopy"><span class="eyebrow">JEWELRY MADE FOR YOU</span><h1>Pieces that feel personal, effortless and completely yours.</h1><p>Handmade in Nairobi with thoughtful details, soft luxury and room for your personal style.</p><div class="actions"><button class="primary" onclick="go('shop')">SHOP COLLECTION</button><button class="secondary" onclick="go('custom')">CREATE YOUR PIECE</button></div></div><div class="heroVisual">${art('large')}<small>EDITORIAL MODEL / VIDEO PLACEHOLDER</small></div></section><section class="section">${title('Explore','Shop by category')}<div class="categoryGrid">${['Necklaces','Bracelets','Waist Beads','Custom Pieces'].map((n,i)=>`<button class="categoryCard tone${i}" onclick="go('${n==='Custom Pieces'?'custom':'shop'}')">${art()}<h3>${n}</h3><span>SHOP NOW →</span></button>`).join('')}</div></section><section class="section white">${title('The first drop','Meet the collection','Six handmade necklaces designed for everyday elegance and thoughtful gifting.')}<div class="productGrid">${products.map(productCard).join('')}</div><button class="secondary center" onclick="go('shop')">VIEW ALL PIECES</button></section><section class="editorial"><div class="campaign"><small>CAMPAIGN IMAGE / SHORT VIDEO</small></div><div class="editorialCopy"><span class="eyebrow">WEAR IT YOUR WAY</span><h2>Made to move with your story.</h2><p>From soft everyday pieces to meaningful gifts and bold custom designs, Leridia is made for the way you choose to shine.</p><button class="light" onclick="go('shop')">DISCOVER LERIDIA</button></div></section><section class="customBlock"><div class="customVisual"><small>HANDS • CHAINS • BEADS • GEMSTONES</small></div><div><span class="eyebrow">CUSTOM JEWELRY</span><h2>You imagine it.<br>We make it.</h2><p>Choose your chain, length, finish, pearls, beads or gemstones. Upload your inspiration and receive a personal quotation.</p><div class="steps">01 SHARE YOUR IDEA&nbsp;&nbsp; 02 APPROVE THE DESIGN&nbsp;&nbsp; 03 WE CREATE IT</div><button class="primary" onclick="go('custom')">START CUSTOM ORDER</button></div></section><section class="promise">${title('The Leridia promise','Soft luxury, thoughtfully made')}<div class="promiseGrid">${[['01','HANDMADE IN NAIROBI','Small-batch pieces created with care.'],['02','MADE PERSONAL','Lengths, finishes and details chosen by you.'],['03','COUNTRYWIDE DELIVERY','Flexible pickup and courier options across Kenya.']].map(a=>`<article><span>${a[0]}</span><b>${a[1]}</b><p>${a[2]}</p></article>`).join('')}</div></section>`}
+    function renderShop(){document.getElementById('shop').innerHTML=`<section class="page">${title('The collection','Find your piece','Handmade jewelry for everyday elegance, thoughtful gifts and custom moments.')}<div class="shopTools"><input id="shopSearch" oninput="filterShop()" placeholder="Search Leridia…"><select id="shopFilter" onchange="filterShop()"><option>All</option><option>Necklaces</option><option>Bracelets</option><option>Waist Beads</option></select></div><div id="shopGrid" class="productGrid"></div></section>`;filterShop()}function filterShop(){const q=(document.getElementById('shopSearch')?.value||'').toLowerCase(),f=document.getElementById('shopFilter')?.value||'All',list=products.filter(p=>(f==='All'||p.category===f)&&p.name.toLowerCase().includes(q));document.getElementById('shopGrid').innerHTML=list.map(p=>`<div class="productWrap">${productCard(p)}<div class="quick"><button onclick="toggleWish('${p.id}')">${wishlist.includes(p.id)?'♥ SAVED':'♡ SAVE'}</button><button onclick="addToCart('${p.id}')">ADD</button></div></div>`).join('')}
+    function renderProduct(){const p=selected;document.getElementById('product').innerHTML=`<section class="page productDetail"><div class="productHeroImage ${p.tone}">${art('huge')}<small>PRODUCT PHOTO PLACEHOLDER</small></div><div class="productInfo"><span class="eyebrow">THE FIRST DROP</span><div class="productTitle"><h1>${p.name} Necklace</h1><button onclick="toggleWish('${p.id}')">${wishlist.includes(p.id)?'♥':'♡'}</button></div><h3>${money(p.price)}</h3><p>${p.description}</p><label>Length<select id="length"><option>16 inches</option><option selected>18 inches</option><option>20 inches (+ KSh 100)</option><option>22 inches (+ KSh 150)</option></select></label><label>Finish<select><option>${p.material}</option><option>Gold-plated</option><option>Stainless steel</option></select></label><div class="actions"><button class="primary" onclick="addProductAndGo()">ADD TO BAG</button><button class="secondary" onclick="addProductAndGo()">RESERVE 5 DAYS</button></div><div class="trust">✓ Handmade in Nairobi &nbsp; ✓ Countrywide delivery &nbsp; ✓ Gift-ready packaging</div></div></section>`}function addProductAndGo(){addToCart(selected.id,document.getElementById('length').value);go('cart')}
+    function renderCart(){const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('cart').innerHTML=`<section class="page">${title('Your selection','Shopping bag','Review your pieces before delivery and payment.')}${cart.length?`<div class="cartLayout"><div>${cart.map((i,n)=>`<article class="cartItem"><div class="miniImage ${i.tone}">${art()}</div><div><h3>${i.name}</h3><p>${i.length} • ${i.material}</p><b>${money(i.price)}</b><div class="qty"><button onclick="qty(${n},-1)">−</button><span>${i.quantity}</span><button onclick="qty(${n},1)">+</button></div></div><button class="remove" onclick="removeItem(${n})">REMOVE</button></article>`).join('')}</div><aside class="summary"><h3>ORDER SUMMARY</h3><p><span>Subtotal</span><b>${money(total)}</b></p><p><span>Delivery</span><b>Calculated by location</b></p><p class="total"><span>Total</span><b>${money(total)}</b></p><button class="primary full" onclick="go('checkout')">PROCEED TO CHECKOUT</button><button class="secondary full" onclick="go('shop')">CONTINUE SHOPPING</button></aside></div>`:`<div class="empty"><h3>Your bag is waiting.</h3><button class="primary" onclick="go('shop')">SHOP COLLECTION</button></div>`}</section>`}function qty(n,d){cart[n].quantity=Math.max(1,cart[n].quantity+d);save();renderCart()}function removeItem(n){cart.splice(n,1);save();renderCart()}
+    function renderCheckout(){const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('checkout').innerHTML=`<section class="page">${title('Secure checkout','Delivery & payment','Guest checkout with M-Pesa or card.')}<div class="checkoutLayout"><form class="checkoutForm" onsubmit="finishOrder(event)"><div class="fieldRow"><label>Full name<input required name="name" placeholder="Amina Wanjiku"></label><label>Phone number<input required name="phone" placeholder="0712 345 678"></label></div><div class="fieldRow"><label>Email<input required name="email" type="email" placeholder="amina@example.com"></label><label>County<input required name="county" placeholder="Nairobi"></label></div><label>Town / area<input required name="area" placeholder="Kilimani"></label><label>Delivery option<select name="delivery"><option>Doorstep delivery</option><option>Pickup Mtaani collection point</option><option>Shelf pickup</option></select></label><div class="paymentChoice"><label><input checked type="radio" name="payment"> M-Pesa STK Push</label><label><input type="radio" name="payment"> Debit or credit card</label></div><button class="primary full">PAY ${money(total)}</button><small>This live preview uses a safe demo checkout until Paystack credentials are connected to the production backend.</small></form><aside class="summary"><h3>ORDER SUMMARY</h3>${cart.map(i=>`<p><span>${i.name} × ${i.quantity}</span><b>${money(i.price*i.quantity)}</b></p>`).join('')}<p class="total"><span>Total</span><b>${money(total)}</b></p></aside></div></section>`}function finishOrder(e){e.preventDefault();if(!cart.length)return notify('Your bag is empty.');lastOrder={reference:'LJ-'+Date.now().toString().slice(-8),status:'Order confirmed — preparing your jewelry'};localStorage.setItem('leridia-order',JSON.stringify(lastOrder));cart=[];save();notify('Payment approved in demo mode.');go('track')}
+    function renderTrack(){document.getElementById('track').innerHTML=`<section class="page narrow">${title(lastOrder?.reference||'Track your order','Your order journey','Status updates appear here as your jewelry moves from Leridia to you.')}<div class="timeline">${[['✓','ORDER CONFIRMED','Payment received'],['✓','IN PRODUCTION','Your piece is being prepared'],['●','READY FOR DISPATCH','Packing and courier handover'],['○','IN TRANSIT','Courier tracking will appear here'],['○','DELIVERED','Enjoy your Leridia piece']].map((a,n)=>`<div class="${n<2?'done':n===2?'active':''}"><span>${a[0]}</span><div><b>${a[1]}</b><p>${a[2]}</p></div></div>`).join('')}</div></section>`}
+    function renderCustom(){document.getElementById('custom').innerHTML=`<section class="page customPage"><div class="customPhoto"><small>INSPIRATION / PROCESS IMAGE</small></div><form onsubmit="customSubmit(event)"><span class="eyebrow">JEWELRY MADE FOR YOU</span><h1>Create your piece.</h1><p>Share your idea, preferred materials and inspiration. A 60% deposit is requested after your quotation is approved.</p><div class="fieldRow"><label>Jewelry type<select><option>Necklace</option><option>Bracelet</option><option>Waist beads</option></select></label><label>Material<select><option>Gold-plated</option><option>Stainless steel</option><option>Gemstones</option><option>Beads</option></select></label></div><div class="fieldRow"><label>Length<select><option>16 inches</option><option>18 inches</option><option>20 inches</option><option>22 inches</option></select></label><label>Budget<input required placeholder="KSh 2,000"></label></div><label>Design notes<textarea required placeholder="Describe your ideal piece…"></textarea></label><label class="upload">＋ UPLOAD INSPIRATION IMAGES<input type="file" accept="image/*" multiple></label><button class="primary full">REQUEST QUOTATION</button></form></section>`}function customSubmit(e){e.preventDefault();notify('Custom request received. We’ll send your quotation shortly.');setTimeout(()=>go('account'),1000)}
+    function renderAccount(){document.getElementById('account').innerHTML=`<section class="page">${title('My Leridia','Welcome back, Amina','Orders, loyalty rewards, referrals and saved pieces.')}<div class="accountGrid"><article class="loyalty"><span>LERIDIA LOYALTY</span><h2>75 points</h2><p>25 points until your surprise jewelry gift.</p><div><i></i></div></article><div class="accountTiles"><button onclick="go('track')"><div><b>ORDERS</b><span>${lastOrder?lastOrder.reference:'No active orders'}</span></div><i>→</i></button><button onclick="go('shop')"><div><b>WISHLIST</b><span>${wishlist.length} saved pieces</span></div><i>→</i></button><button><div><b>REFERRALS</b><span>Invite a friend • +25 points</span></div><i>→</i></button><button><div><b>GIFT CARDS</b><span>Digital and printable</span></div><i>→</i></button></div></div></section>`}
+    function renderAdmin(){const value=products.reduce((s,p)=>s+p.price*p.stock,0);document.getElementById('admin').innerHTML=`<section class="page">${title('Store management','Admin dashboard','Products, stock, revenue and custom requests.')}<div class="adminStats"><article><span>PRODUCTS</span><h3>${products.length}</h3></article><article><span>OPENING STOCK</span><h3>${products.reduce((s,p)=>s+p.stock,0)}</h3></article><article><span>STOCK VALUE</span><h3>${money(value)}</h3></article><article><span>CUSTOM REQUESTS</span><h3>1</h3></article></div><div class="adminTable"><div class="adminHead"><b>Product</b><b>Material</b><b>Price</b><b>Stock</b></div>${products.map(p=>`<div><span>${p.name}</span><span>${p.material}</span><span>${money(p.price)}</span><span>${p.stock}</span></div>`).join('')}</div></section>`}
+    renderHome();save();
+  </script>
 </body>
 </html>
